@@ -483,6 +483,45 @@ input[type="range"]::-webkit-slider-thumb {
 .source-item:last-child { border-bottom: none; }
 .source-item a { color: #5580aa; word-break: break-all; }
 
+/* ── 故事庫 ── */
+.story-lib-btn {
+  font-size: 0.73rem; padding: 5px 11px;
+  border-radius: 8px; border: 1.5px solid var(--border);
+  background: none; color: var(--mist); cursor: pointer;
+  transition: all 0.18s;
+}
+.story-lib-btn:hover { border-color: var(--gold); color: var(--gold); }
+.story-item {
+  border: 1.5px solid var(--cream); border-radius: 10px;
+  padding: 13px 15px; margin-bottom: 10px;
+  background: var(--paper); position: relative;
+  transition: border-color 0.18s;
+}
+.story-item:hover { border-color: var(--gold); }
+.story-item-tag {
+  display: inline-block; font-size: 0.67rem;
+  padding: 2px 8px; border-radius: 10px;
+  background: var(--cream); color: var(--mist);
+  margin-bottom: 6px;
+}
+.story-item-text {
+  font-size: 0.82rem; line-height: 1.7; color: var(--ink);
+  overflow: hidden; display: -webkit-box;
+  -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+}
+.story-item-actions {
+  display: flex; gap: 8px; margin-top: 10px;
+}
+.story-item-actions button {
+  font-size: 0.72rem; padding: 4px 10px;
+  border-radius: 6px; border: 1px solid var(--cream);
+  background: none; cursor: pointer; color: var(--mist);
+  transition: all 0.18s;
+}
+.story-item-actions button:hover { border-color: var(--gold); color: var(--gold); }
+.story-item-actions .del-btn:hover { border-color: var(--rust); color: var(--rust); }
+.story-empty { text-align:center; padding: 32px; color: var(--mist); font-size: 0.82rem; }
+
 .hidden { display: none !important; }
 
 @media (max-width: 600px) {
@@ -510,6 +549,28 @@ input[type="range"]::-webkit-slider-thumb {
       <button class="btn btn-primary" onclick="saveApiKey()">✓ 儲存並繼續</button>
       <button class="btn btn-ghost" onclick="closeApiKeyModal()">取消</button>
     </div>
+  </div>
+</div>
+
+<!-- ═══ STORY LIBRARY MODAL ═══ -->
+<div class="overlay hidden" id="storyLibOverlay">
+  <div class="modal" style="max-width:600px;">
+    <button class="modal-close" onclick="closeStoryLib()">×</button>
+    <div class="modal-title">📖 故事庫</div>
+    <div class="modal-desc">K 累積的真實故事和素材，每次生腳本都可以從這裡選用。</div>
+
+    <!-- 新增故事 -->
+    <div style="background:var(--paper);border-radius:12px;padding:16px 18px;margin-bottom:20px;">
+      <div style="font-size:0.78rem;font-weight:500;color:var(--ink);margin-bottom:10px;">＋ 新增故事</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <input type="text" id="storyTagInput" placeholder="標籤（例：客戶案例、創業故事）" style="flex:1;font-size:0.82rem;" />
+      </div>
+      <textarea id="storyContentInput" placeholder="把故事或素材寫在這裡…" style="min-height:80px;font-size:0.84rem;margin-bottom:8px;"></textarea>
+      <button class="btn btn-primary" style="padding:9px 20px;font-size:0.82rem;" onclick="saveStory()">存入故事庫</button>
+    </div>
+
+    <!-- 故事列表 -->
+    <div id="storyLibList"></div>
   </div>
 </div>
 
@@ -903,9 +964,23 @@ input[type="range"]::-webkit-slider-thumb {
     <div class="card" id="storyCard" style="display:none;">
       <div class="card-title">加入你的故事或想法 <span class="opt-badge">選填</span></div>
       <div class="card-desc">有沒有跟這個選題相關的親身經歷、客戶故事、或者想說的話？填了之後腳本會以你的故事為核心發想，真實感差很多。</div>
-      <div class="field-group">
-        <textarea id="personalStory" placeholder="例：有個客戶三年前說「我很健康不用買醫療險」，去年一場大病花了 80 萬，保費只夠賠 10 萬…那天我很難過，但更難過的是他。" style="min-height:100px;"></textarea>
+
+      <!-- 故事庫快速卡片 -->
+      <div id="storyLibPreview" class="hidden" style="margin-bottom:16px;">
+        <div style="font-size:0.73rem;color:var(--mist);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+          <span>📖 你存過的故事</span>
+          <button onclick="openStoryLib()" style="background:none;border:none;cursor:pointer;font-size:0.72rem;color:var(--gold);">查看全部 →</button>
+        </div>
+        <div id="storyLibCards" style="display:flex;flex-direction:column;gap:8px;"></div>
       </div>
+
+      <div class="field-group" style="margin-bottom:10px;">
+        <textarea id="personalStory" placeholder="例：有個客戶三年前說「我很健康不用買醫療險」，去年一場大病花了 80 萬，保費只夠賠 10 萬…那天我很難過，但更難過的是他。" style="min-height:100px;"></textarea>
+        <div style="display:flex;justify-content:flex-end;margin-top:6px;">
+          <button class="story-lib-btn" onclick="quickSaveStory()">＋ 存入故事庫</button>
+        </div>
+      </div>
+
       <div class="btn-actions">
         <button class="btn btn-primary" id="genScriptBtn" onclick="generateScript()" disabled>✦ 生成完整腳本</button>
         <span id="selectHint" style="font-size:0.77rem;color:var(--mist);">請先點選上方一個選題</span>
@@ -1008,6 +1083,7 @@ const MAX_VERSIONS = 5;
 window.addEventListener('DOMContentLoaded', function() {
   loadBrandFromStorage();
   updateApiKeyPill();
+  updateStoryLibCount();
   if (!getApiKey()) showApiKeyModal();
   document.querySelectorAll('.tag-group').forEach(g => {
     g.querySelectorAll('.tag-opt').forEach(t => {
@@ -1362,6 +1438,7 @@ function selectTopic(idx, el) {
   selectedTopicIdx = idx;
   document.getElementById('genScriptBtn').disabled = false;
   document.getElementById('selectHint').style.display = 'none';
+  renderStoryLibCards(); // 顯示故事庫卡片
   document.getElementById('storyCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
@@ -2084,6 +2161,123 @@ ${viewpoint ? `【K 的觀點/想法】\n${viewpoint}` : ''}
     document.getElementById('scriptLoading').innerHTML =
       `<div style="color:var(--rust);font-size:0.83rem;">生成失敗，請重試。<br><small>${e.message}</small></div>`;
   }
+}
+// ════════════════════════════════════════
+// STORY LIBRARY
+// ════════════════════════════════════════
+function getStories() {
+  try { return JSON.parse(localStorage.getItem('kStoryLib') || '[]'); } catch(e) { return []; }
+}
+
+function saveStories(arr) {
+  try { localStorage.setItem('kStoryLib', JSON.stringify(arr)); } catch(e) {}
+  updateStoryLibCount();
+}
+
+function updateStoryLibCount() {
+  const stories = getStories();
+  const el = document.getElementById('storyLibCount');
+  if (el) el.textContent = stories.length > 0 ? `故事庫 (${stories.length})` : '故事庫';
+}
+
+function openStoryLib() {
+  renderStoryLibList();
+  document.getElementById('storyLibOverlay').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeStoryLib() {
+  document.getElementById('storyLibOverlay').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+function saveStory() {
+  const tag = document.getElementById('storyTagInput').value.trim() || '未分類';
+  const content = document.getElementById('storyContentInput').value.trim();
+  if (!content) { alert('請先填寫故事內容'); return; }
+  const stories = getStories();
+  stories.unshift({ id: Date.now(), tag, content, date: new Date().toLocaleDateString('zh-TW') });
+  saveStories(stories);
+  document.getElementById('storyTagInput').value = '';
+  document.getElementById('storyContentInput').value = '';
+  renderStoryLibList();
+}
+
+function quickSaveStory() {
+  const content = document.getElementById('personalStory').value.trim();
+  if (!content) { alert('請先填寫故事內容再存入'); return; }
+  const tag = prompt('幫這個故事加個標籤（例：客戶案例、創業故事）', '客戶案例') || '未分類';
+  const stories = getStories();
+  stories.unshift({ id: Date.now(), tag, content, date: new Date().toLocaleDateString('zh-TW') });
+  saveStories(stories);
+  alert('已存入故事庫 ✓');
+}
+
+function deleteStory(id) {
+  if (!confirm('確定要刪除這個故事嗎？')) return;
+  const stories = getStories().filter(s => s.id !== id);
+  saveStories(stories);
+  renderStoryLibList();
+}
+
+function useStory(id) {
+  const story = getStories().find(s => s.id === id);
+  if (!story) return;
+  document.getElementById('personalStory').value = story.content;
+  closeStoryLib();
+  document.getElementById('storyCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function renderStoryLibList() {
+  const stories = getStories();
+  const list = document.getElementById('storyLibList');
+  if (!stories.length) {
+    list.innerHTML = '<div class="story-empty">還沒有存入任何故事<br><span style="font-size:0.75rem;">在上方新增，或在生成腳本頁面點「存入故事庫」</span></div>';
+    return;
+  }
+  list.innerHTML = stories.map(s => `
+    <div class="story-item">
+      <span class="story-item-tag">${s.tag}</span>
+      <span style="font-size:0.67rem;color:var(--mist);margin-left:8px;">${s.date}</span>
+      <div class="story-item-text">${s.content}</div>
+      <div class="story-item-actions">
+        <button onclick="useStory(${s.id})">✓ 使用這個故事</button>
+        <button class="del-btn" onclick="deleteStory(${s.id})">× 刪除</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderStoryLibCards() {
+  const stories = getStories();
+  const preview = document.getElementById('storyLibPreview');
+  const cards = document.getElementById('storyLibCards');
+  if (!stories.length || !preview) return;
+
+  preview.classList.remove('hidden');
+  // 顯示最近 3 個
+  const recent = stories.slice(0, 3);
+  cards.innerHTML = recent.map(s => `
+    <div style="border:1.5px solid var(--cream);border-radius:9px;padding:11px 14px;background:var(--paper);cursor:pointer;transition:border-color 0.18s;"
+      onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--cream)'"
+      onclick="useStoryInline(${s.id})">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:0.67rem;padding:2px 8px;border-radius:10px;background:var(--cream);color:var(--mist);">${s.tag}</span>
+        <span style="font-size:0.67rem;color:var(--mist);">${s.date} · 點擊使用</span>
+      </div>
+      <div style="font-size:0.8rem;color:var(--ink);line-height:1.6;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${s.content}</div>
+    </div>
+  `).join('');
+}
+
+function useStoryInline(id) {
+  const story = getStories().find(s => s.id === id);
+  if (!story) return;
+  document.getElementById('personalStory').value = story.content;
+  // Highlight the textarea briefly
+  const ta = document.getElementById('personalStory');
+  ta.style.borderColor = 'var(--gold)';
+  setTimeout(() => ta.style.borderColor = '', 1200);
 }
 </script>
 </body>
