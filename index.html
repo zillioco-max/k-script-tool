@@ -370,6 +370,119 @@ input[type="range"]::-webkit-slider-thumb {
   margin-bottom: 8px;
 }
 
+/* ── 版本保留區 ── */
+.versions-area { margin-top: 24px; }
+.versions-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--mist);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.versions-title::after { content:''; flex:1; height:1px; background:var(--border); }
+.version-item {
+  border: 1.5px solid var(--cream);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  background: var(--paper);
+  cursor: pointer;
+  transition: all 0.18s;
+  position: relative;
+}
+.version-item:hover { border-color: var(--gold); }
+.version-item.current { border-color: var(--gold); background: #fffbf0; }
+.version-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.version-num {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--gold);
+}
+.version-time { font-size: 0.7rem; color: var(--mist); }
+.version-preview {
+  font-size: 0.78rem;
+  color: var(--mist);
+  line-height: 1.5;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.version-restore {
+  position: absolute; top: 10px; right: 10px;
+  font-size: 0.7rem; color: var(--mist);
+  background: none; border: 1px solid var(--cream);
+  border-radius: 6px; padding: 3px 8px; cursor: pointer;
+  transition: all 0.18s; display: none;
+}
+.version-item:hover .version-restore { display: block; }
+.version-restore:hover { border-color: var(--gold); color: var(--gold); }
+
+/* ── 優化指令欄 ── */
+.optimize-area {
+  background: var(--paper);
+  border: 1.5px solid var(--cream);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-top: 20px;
+}
+.optimize-title {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.optimize-hint { font-size: 0.73rem; color: var(--mist); margin-bottom: 10px; line-height: 1.6; }
+.optimize-row { display: flex; gap: 10px; align-items: flex-start; }
+.optimize-row textarea {
+  flex: 1;
+  min-height: 56px;
+  font-size: 0.84rem;
+}
+.optimize-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.optimize-chip {
+  padding: 4px 11px; border-radius: 16px;
+  border: 1.5px dashed var(--cream);
+  font-size: 0.73rem; color: var(--mist);
+  cursor: pointer; transition: all 0.18s;
+}
+.optimize-chip:hover { border-color: var(--gold); color: var(--gold); border-style: solid; }
+
+/* ── 數據來源 ── */
+.sources-area {
+  background: #f0f6ff;
+  border: 1px solid rgba(100,140,200,0.2);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-top: 14px;
+}
+.sources-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  color: #5580aa;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.source-item {
+  font-size: 0.78rem;
+  color: var(--ink);
+  line-height: 1.7;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(100,140,200,0.12);
+}
+.source-item:last-child { border-bottom: none; }
+.source-item a { color: #5580aa; word-break: break-all; }
+
 .hidden { display: none !important; }
 
 @media (max-width: 600px) {
@@ -763,11 +876,42 @@ input[type="range"]::-webkit-slider-thumb {
       <div id="scriptBody" class="hidden">
         <button class="btn btn-ghost copy-btn" onclick="copyScript()">複製全文</button>
         <div id="scriptOutput" class="script-output"></div>
+
+        <!-- 數據來源區 -->
+        <div id="sourcesArea" class="sources-area hidden">
+          <div class="sources-title">📊 數據來源參考</div>
+          <div id="sourcesList"></div>
+        </div>
+
         <div class="compliance-banner">
           <span>🛡️</span>
           <span>本腳本已避免保證收益、誇大理賠、未持牌勸誘等高風險表達，發布前請再次確認符合金管會保險局行銷規範。</span>
         </div>
+
+        <!-- 優化指令欄 -->
+        <div class="optimize-area">
+          <div class="optimize-title">✏️ 想優化這支腳本？</div>
+          <div class="optimize-hint">告訴 AI 你想改什麼方向，它會保留原本的結構，針對你指定的部分重新生成。</div>
+          <div class="optimize-chips">
+            <span class="optimize-chip" onclick="setOptimize(this)">把鉤子改得更衝突</span>
+            <span class="optimize-chip" onclick="setOptimize(this)">痛點更具體一點</span>
+            <span class="optimize-chip" onclick="setOptimize(this)">加入數字和數據</span>
+            <span class="optimize-chip" onclick="setOptimize(this)">語氣更輕鬆一點</span>
+            <span class="optimize-chip" onclick="setOptimize(this)">縮短整體長度</span>
+            <span class="optimize-chip" onclick="setOptimize(this)">行動召喚更有創意</span>
+          </div>
+          <div class="optimize-row" style="margin-top:10px;">
+            <textarea id="optimizeInput" placeholder="例：把痛點換成退休金不夠用的情境，鉤子改成反問句…"></textarea>
+            <button class="btn btn-primary" style="padding:12px 18px;white-space:nowrap;" onclick="optimizeScript()">→ 優化</button>
+          </div>
+        </div>
       </div>
+    </div>
+
+    <!-- 版本保留區 -->
+    <div id="versionsArea" class="versions-area hidden">
+      <div class="versions-title">歷史版本</div>
+      <div id="versionsList"></div>
     </div>
 
     <div class="btn-actions">
@@ -800,6 +944,8 @@ let selectedTopicIdx = -1;
 let currentMode = 'original';
 let currentRefType = 'url';
 let refImageBase64 = null;
+let scriptVersions = [];
+const MAX_VERSIONS = 5;
 
 // ════════════════════════════════════════
 // INIT — 等 DOM 完全載入再執行
@@ -1141,7 +1287,7 @@ async function generateScript() {
 法規紅線（絕對不能出現）：
 保證收益、保證報酬率、一定賺、誇大理賠條件、「馬上找我買」等即時催促、詆毀競品
 
-輸出：純文字，每段前加【段落名稱】，最後加「📌 發文文案」（IG caption 含 hashtag）`;
+輸出：純文字，每段前加【段落名稱】，最後加「📌 發文文案」（IG caption 含 hashtag）。如果腳本裡有引用任何數據或統計，在最後另起一行加「📊 數據來源：」並列出參考資料名稱和網址（用真實來源：衛福部、金管會、國發會、WHO等）`;
 
   const msg = `請生成一支 ${dur} 秒短影音的完整口播腳本。
 
@@ -1174,11 +1320,87 @@ ${story ? `顧問的故事或想法（以此為腳本核心）：\n${story}` : '
   }
 }
 
-function renderScript(text) {
-  const fmt = text
+// ════════════════════════════════════════
+// VERSION HISTORY (最多保留5個)
+// ════════════════════════════════════════
+function saveVersion(text) {
+  const now = new Date();
+  const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+  scriptVersions.unshift({ text, time: timeStr, id: Date.now() });
+  if (scriptVersions.length > MAX_VERSIONS) scriptVersions.pop();
+  renderVersions();
+}
+
+function renderVersions() {
+  const area = document.getElementById('versionsArea');
+  const list = document.getElementById('versionsList');
+  if (scriptVersions.length <= 1) { area.classList.add('hidden'); return; }
+  area.classList.remove('hidden');
+  list.innerHTML = '';
+  scriptVersions.slice(1).forEach((v, i) => {
+    const el = document.createElement('div');
+    el.className = 'version-item';
+    const preview = v.text.replace(/✦[^\n]*/g, '').replace(/─+/g, '').trim().slice(0, 80) + '…';
+    el.innerHTML = `
+      <div class="version-header">
+        <span class="version-num">版本 ${scriptVersions.length - i - 1}</span>
+        <span class="version-time">${v.time}</span>
+      </div>
+      <div class="version-preview">${preview}</div>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button class="version-restore" style="display:block;position:static;" onclick="restoreVersion(${i+1})">↩ 還原此版本</button>
+        <button class="version-restore" style="display:block;position:static;color:var(--rust);border-color:rgba(184,92,56,0.3);" onclick="deleteVersion(${i+1})">× 刪除</button>
+      </div>`;
+    list.appendChild(el);
+  });
+}
+
+function restoreVersion(idx) {
+  const v = scriptVersions[idx];
+  if (!v) return;
+  scriptVersions.splice(idx, 1);
+  scriptVersions.unshift(v);
+  document.getElementById('scriptOutput').textContent = v.text;
+  renderVersions();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function deleteVersion(idx) {
+  scriptVersions.splice(idx, 1);
+  renderVersions();
+}
+
+// ════════════════════════════════════════
+// RENDER SCRIPT + SOURCES
+// ════════════════════════════════════════
+function renderScript(rawText) {
+  // Split sources section if present
+  const sourcesSplit = rawText.split(/📊\s*數據來源[：:]/i);
+  const scriptPart = sourcesSplit[0];
+  const sourcesPart = sourcesSplit[1] || '';
+
+  const fmt = scriptPart
     .replace(/【(.+?)】/g, (_, s) => `\n\n✦ ${s}\n${'─'.repeat(26)}\n`)
-    .replace(/📌/g, '\n\n📌');
+    .replace(/📌/g, '\n\n📌')
+    .replace(/\[來源\d*\]/g, m => m); // keep inline source markers
+
   document.getElementById('scriptOutput').textContent = fmt.trim();
+
+  // Render sources
+  if (sourcesPart.trim()) {
+    const lines = sourcesPart.trim().split('\n').filter(l => l.trim());
+    const list = document.getElementById('sourcesList');
+    list.innerHTML = lines.map(line => {
+      // Try to make URLs clickable
+      const linked = line.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
+      return `<div class="source-item">${linked}</div>`;
+    }).join('');
+    document.getElementById('sourcesArea').classList.remove('hidden');
+  } else {
+    document.getElementById('sourcesArea').classList.add('hidden');
+  }
+
+  saveVersion(fmt.trim());
 }
 
 function copyScript() {
@@ -1187,6 +1409,49 @@ function copyScript() {
     btn.textContent = '✓ 已複製';
     setTimeout(() => btn.textContent = '複製全文', 2000);
   });
+}
+
+// ════════════════════════════════════════
+// OPTIMIZE SCRIPT
+// ════════════════════════════════════════
+function setOptimize(el) {
+  document.getElementById('optimizeInput').value = el.textContent;
+}
+
+async function optimizeScript() {
+  const instruction = document.getElementById('optimizeInput').value.trim();
+  if (!instruction) { alert('請填寫你想怎麼優化'); return; }
+  const currentScript = document.getElementById('scriptOutput').textContent;
+  const bp = getBrandContext();
+
+  // Show loading in script area
+  document.getElementById('scriptOutput').textContent = '優化中…';
+  document.getElementById('sourcesArea').classList.add('hidden');
+
+  const sys = `你是台灣頂尖的保險財經短影音腳本顧問。
+使用者有一支現有腳本，想針對特定方向優化。
+你的任務是：保留原本腳本的整體結構和長度，只針對使用者指定的部分重新生成。
+法規紅線不變：保證收益、誇大理賠、即時催促購買、詆毀競品——絕對不能出現。
+輸出：純文字，每段前加【段落名稱】，最後加「📌 發文文案」。
+如果腳本裡有引用數據，在最後加「📊 數據來源：」並列出參考連結。`;
+
+  const msg = `現有腳本：
+${currentScript}
+
+優化指令：${instruction}
+
+顧問語氣：${(bp.personality||[]).join('、')}、${(bp.tone||[]).join('、')}
+
+請針對優化指令修改，其他部分盡量保留原有風格。`;
+
+  try {
+    const result = await callClaude(sys, msg, 1000);
+    renderScript(result);
+    document.getElementById('optimizeInput').value = '';
+  } catch(e) {
+    document.getElementById('scriptOutput').textContent = currentScript;
+    alert(`優化失敗：${e.message}`);
+  }
 }
 // ════════════════════════════════════════
 // MODE SWITCH (自由發想 / 參考影片 / 時事新聞)
@@ -1350,7 +1615,7 @@ async function generateRefScript() {
 法規紅線（絕對不能出現）：
 保證收益、保證報酬率、一定賺、誇大理賠條件、即時催促購買、詆毀競品
 
-輸出：純文字，每段前加【段落名稱】，最後加「📌 發文文案」（IG caption 含 hashtag）`;
+輸出：純文字，每段前加【段落名稱】，最後加「📌 發文文案」（IG caption 含 hashtag）。如果腳本裡有引用任何數據或統計，在最後另起一行加「📊 數據來源：」並列出參考資料名稱和網址（用真實來源：衛福部、金管會、國發會、WHO等）`;
 
   const msg = `請根據以下資訊，生成一支 ${dur} 秒短影音的完整口播腳本。
 
@@ -1618,7 +1883,7 @@ async function generateNewsScript() {
 
 法規紅線：保證收益、誇大理賠、即時催促購買、詆毀競品——絕對不能出現
 
-輸出：純文字，每段前加【段落名稱】，最後加「📌 發文文案」（IG caption 含 hashtag）`;
+輸出：純文字，每段前加【段落名稱】，最後加「📌 發文文案」（IG caption 含 hashtag）。如果腳本裡有引用任何數據或統計，在最後另起一行加「📊 數據來源：」並列出參考資料名稱和網址（用真實來源：衛福部、金管會、國發會、WHO等）`;
 
   const msg = `請生成一支 ${dur} 秒短影音的完整口播腳本。
 
