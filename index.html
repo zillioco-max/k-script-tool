@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device, initial-scale=1.0">
+<title>保險短影音腳本生成器</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Noto+Serif+TC:wght@300;400;500;600&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1a2e;
+  --paper: #f7f4ef;
+  --cream: #ede8df;
+  --gold: #c9a84c;
+  --rust: #b85c38;
+  --sage: #7a9e7e;
+  --mist: #8fa0b0;
+  --card: #ffffff;
+  --border: rgba(201,168,76,0.25);
+  --shadow: 0 4px 32px rgba(26,26,46,0.10);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Noto Serif TC', serif;
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse at 80% 10%, rgba(201,168,76,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse at 10% 90%, rgba(127,156,185,0.08) 0%, transparent 55%);
+}
+
+/* ── Header ── */
+.site-header {
+  border-bottom: 1px solid var(--border);
+  padding: 20px 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(247,244,239,0.92);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header-left { display: flex; align-items: baseline; gap: 14px; }
+.site-header h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.35rem;
+  letter-spacing: 0.01em;
+}
+.site-header .sub {
+  font-size: 0.75rem;
+  color: var(--mist);
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.gold-dot { color: var(--gold); margin: 0 4px; }
+
+/* Brand pill in header */
+.brand-pill {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 14px;
+  border-radius: 24px;
+  border: 1.5px solid var(--border);
+  font-size: 0.78rem;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--card);
+  user-select: none;
+}
+.brand-pill:hover { border-color: var(--gold); }
+.brand-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--sage);
+  flex-shrink: 0;
+  transition: background 0.3s;
+}
+.brand-dot.unset { background: var(--cream); border: 1.5px solid var(--mist); }
+.brand-pill-name { font-weight: 500; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.brand-pill-action { color: var(--mist); font-size: 0.7rem; }
+
+/* ── Layout ── */
+.container {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 44px 32px 80px;
+}
+
+/* ── Steps ── */
+.steps {
+  display: flex;
+  align-items: center;
+  margin-bottom: 40px;
+}
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  opacity: 0.3;
+  transition: opacity 0.35s;
+}
+.step-item.active { opacity: 1; }
+.step-item.done { opacity: 0.6; }
+.step-num {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid var(--gold);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--gold);
+  transition: all 0.3s;
+}
+.step-item.active .step-num { background: var(--gold); color: white; }
+.step-item.done .step-num { background: var(--sage); border-color: var(--sage); color: white; }
+.step-label { font-size: 0.78rem; letter-spacing: 0.04em; white-space: nowrap; }
+.step-div { flex: 1; height: 1px; background: var(--border); margin: 0 10px; min-width: 16px; }
+
+/* ── Cards ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 36px 40px;
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+}
+.card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.15rem;
+  margin-bottom: 6px;
+}
+.card-desc {
+  font-size: 0.81rem;
+  color: var(--mist);
+  line-height: 1.75;
+  margin-bottom: 26px;
+}
+
+/* ── Fields ── */
+.field-group { margin-bottom: 22px; }
+.field-label {
+  display: block;
+  font-size: 0.77rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 7px;
+  font-weight: 500;
+}
+.field-hint {
+  font-size: 0.74rem;
+  color: var(--mist);
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+input[type="text"], textarea {
+  width: 100%;
+  background: var(--paper);
+  border: 1.5px solid var(--cream);
+  border-radius: 10px;
+  padding: 12px 15px;
+  font-family: 'Noto Serif TC', serif;
+  font-size: 0.88rem;
+  color: var(--ink);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+  resize: vertical;
+}
+input[type="text"]:focus, textarea:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(201,168,76,0.11);
+}
+textarea { min-height: 86px; }
+
+/* ── Tags ── */
+.tag-group { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 5px; }
+.tag-opt {
+  padding: 6px 13px;
+  border-radius: 22px;
+  border: 1.5px solid var(--cream);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.18s;
+  user-select: none;
+  background: var(--paper);
+}
+.tag-opt:hover { border-color: var(--gold); color: var(--gold); }
+.tag-opt.on { background: var(--gold); border-color: var(--gold); color: white; }
+
+/* ── Slider ── */
+.slider-row { display: flex; align-items: center; gap: 12px; }
+input[type="range"] {
+  flex: 1; appearance: none; height: 4px;
+  border-radius: 2px; background: var(--cream); outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none; width: 17px; height: 17px;
+  border-radius: 50%; background: var(--gold);
+  cursor: pointer; box-shadow: 0 2px 6px rgba(201,168,76,0.35);
+}
+.slider-val { font-family: 'Space Mono', monospace; font-size: 0.83rem; color: var(--gold); min-width: 26px; }
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 12px 26px; border-radius: 10px;
+  font-family: 'Noto Serif TC', serif; font-size: 0.86rem;
+  cursor: pointer; transition: all 0.18s; border: none; letter-spacing: 0.02em;
+}
+.btn-primary { background: var(--gold); color: white; box-shadow: 0 4px 14px rgba(201,168,76,0.28); }
+.btn-primary:hover { background: #b8953e; transform: translateY(-1px); }
+.btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+.btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--mist); }
+.btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+.btn-ghost { background: transparent; color: var(--mist); font-size: 0.78rem; padding: 7px 12px; }
+.btn-ghost:hover { color: var(--rust); }
+.btn-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+/* ── Loading ── */
+.loading-state { display: flex; flex-direction: column; align-items: center; padding: 44px 24px; gap: 14px; }
+.spinner {
+  width: 34px; height: 34px; border: 3px solid var(--cream);
+  border-top-color: var(--gold); border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { color: var(--mist); font-size: 0.83rem; }
+
+/* ── Topic cards ── */
+.topics-grid { display: grid; gap: 12px; margin-bottom: 24px; }
+.topic-card {
+  border: 1.5px solid var(--cream); border-radius: 12px;
+  padding: 16px 18px; cursor: pointer; transition: all 0.18s;
+  position: relative; background: var(--paper);
+}
+.topic-card:hover { border-color: var(--gold); }
+.topic-card.selected { border-color: var(--gold); background: #fffbf0; box-shadow: 0 0 0 3px rgba(201,168,76,0.1); }
+.topic-card.removed { opacity: 0.3; text-decoration: line-through; pointer-events: none; }
+.topic-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.topic-badge {
+  font-family: 'Space Mono', monospace; font-size: 0.65rem;
+  padding: 3px 8px; border-radius: 18px; background: var(--cream);
+  color: var(--mist); white-space: nowrap; flex-shrink: 0;
+}
+.topic-card.selected .topic-badge { background: var(--gold); color: white; }
+.topic-title { font-weight: 500; font-size: 0.93rem; line-height: 1.5; margin-bottom: 5px; flex: 1; }
+.topic-hook { font-size: 0.78rem; color: var(--mist); line-height: 1.6; font-style: italic; }
+.topic-x {
+  position: absolute; top: 10px; right: 10px;
+  background: none; border: none; cursor: pointer;
+  color: #ccc; font-size: 0.83rem; padding: 2px 6px; border-radius: 4px;
+  transition: color 0.18s; display: none;
+}
+.topic-card:hover .topic-x { display: block; }
+.topic-x:hover { color: var(--rust); }
+
+/* ── Script ── */
+.script-output { white-space: pre-wrap; font-family: 'Noto Serif TC', serif; font-size: 0.87rem; line-height: 1.95; color: var(--ink); }
+.copy-btn { position: absolute; top: 15px; right: 15px; }
+.card.has-copy { position: relative; }
+
+/* ── Compliance ── */
+.compliance-banner {
+  background: linear-gradient(135deg, #f0f9f4, #e8f5e9);
+  border: 1px solid rgba(122,158,126,0.3); border-radius: 10px;
+  padding: 11px 15px; font-size: 0.76rem; color: var(--sage);
+  display: flex; align-items: flex-start; gap: 9px; margin-top: 18px;
+}
+
+/* ── Brand modal ── */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(26,26,46,0.55);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 40px 16px;
+  overflow-y: auto;
+}
+.overlay.hidden { display: none; }
+.modal {
+  background: var(--card); border-radius: 20px; padding: 40px 44px;
+  max-width: 640px; width: 100%;
+  box-shadow: 0 12px 60px rgba(26,26,46,0.22); position: relative;
+}
+.modal-close {
+  position: absolute; top: 18px; right: 20px;
+  background: none; border: none; cursor: pointer;
+  color: var(--mist); font-size: 1.3rem; line-height: 1; transition: color 0.18s;
+}
+.modal-close:hover { color: var(--rust); }
+.modal-title { font-family: 'Playfair Display', serif; font-size: 1.25rem; margin-bottom: 6px; }
+.modal-desc { font-size: 0.8rem; color: var(--mist); line-height: 1.7; margin-bottom: 28px; }
+
+/* ── Misc ── */
+.opt-badge {
+  display: inline-block; font-size: 0.66rem; padding: 2px 7px;
+  border-radius: 9px; background: var(--cream); color: var(--mist);
+  margin-left: 7px; vertical-align: middle;
+}
+.theme-suggestions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 9px; }
+.theme-pill {
+  padding: 5px 12px; border-radius: 18px; border: 1.5px dashed var(--cream);
+  font-size: 0.75rem; color: var(--mist); cursor: pointer; transition: all 0.18s;
+}
+.theme-pill:hover { border-color: var(--gold); color: var(--gold); border-style: solid; }
+.no-brand-warn {
+  background: #fff8ed; border: 1px solid rgba(201,168,76,0.3); border-radius: 10px;
+  padding: 14px 18px; font-size: 0.8rem; color: #a07820;
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 20px; cursor: pointer; transition: all 0.18s;
+}
+.no-brand-warn:hover { border-color: var(--gold); }
+/* ── Mode toggle ── */
+.mode-toggle {
+  display: flex;
+  gap: 0;
+  background: var(--cream);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 24px;
+  width: fit-content;
+}
+.mode-btn {
+  padding: 9px 20px;
+  border-radius: 9px;
+  border: none;
+  font-family: 'Noto Serif TC', serif;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: transparent;
+  color: var(--mist);
+  letter-spacing: 0.02em;
+}
+.mode-btn.active {
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: 0 2px 8px rgba(26,26,46,0.10);
+  font-weight: 500;
+}
+
+/* ── Reference panel ── */
+.ref-analysis {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  font-size: 0.82rem;
+  line-height: 1.8;
+  color: var(--ink);
+  margin-bottom: 20px;
+  white-space: pre-wrap;
+}
+.analysis-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--gold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.hidden { display: none !important; }
+
+@media (max-width: 600px) {
+  .container { padding: 24px 14px 60px; }
+  .card { padding: 24px 18px; }
+  .modal { padding: 28px 20px; }
+  .site-header { padding: 16px 18px; }
+  .steps { display: none; }
+  .brand-pill-action { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ BRAND SETUP MODAL ═══ -->
+<div class="overlay hidden" id="brandOverlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeBrandModal()">×</button>
+    <div class="modal-title">品牌底色設定</div>
+    <div class="modal-desc">這些資訊只需要填一次，會自動存在你的瀏覽器裡。之後每次開啟工具，這些資料都還在，完全不需要重填。</div>
+
+    <div class="field-group">
+      <label class="field-label">你的名字 / 稱呼</label>
+      <input type="text" id="bName" placeholder="例：Jerry 朱、保險大叔、王姐" />
+    </div>
+    <div class="field-group">
+      <label class="field-label">專業定位</label>
+      <div class="field-hint">你最主要服務哪些客戶類型？你的專長是什麼？</div>
+      <input type="text" id="bSpecialty" placeholder="例：專注家庭保障規劃、退休財務安排、高資產客戶傳承" />
+    </div>
+    <div class="field-group">
+      <label class="field-label">人格特色</label>
+      <div class="field-hint">選最能描述你說話風格的詞，可複選</div>
+      <div class="tag-group" id="bPersonality">
+        <span class="tag-opt" data-val="親切像朋友">親切像朋友</span>
+        <span class="tag-opt" data-val="專業可信賴">專業可信賴</span>
+        <span class="tag-opt" data-val="幽默有梗">幽默有梗</span>
+        <span class="tag-opt" data-val="直白不廢話">直白不廢話</span>
+        <span class="tag-opt" data-val="溫柔有同理心">溫柔有同理心</span>
+        <span class="tag-opt" data-val="數字控邏輯派">數字控邏輯派</span>
+        <span class="tag-opt" data-val="說故事型">說故事型</span>
+        <span class="tag-opt" data-val="激勵型教練感">激勵型教練感</span>
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">語言風格</label>
+      <div class="tag-group" id="bTone">
+        <span class="tag-opt" data-val="口語化台灣腔">口語化台灣腔</span>
+        <span class="tag-opt" data-val="標準普通話偏正式">標準普通話偏正式</span>
+        <span class="tag-opt" data-val="輕鬆偶爾加梗">輕鬆偶爾加梗</span>
+        <span class="tag-opt" data-val="情感驅動溫度感">情感驅動溫度感</span>
+        <span class="tag-opt" data-val="數據說話理性型">數據說話理性型</span>
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">一句話自介</label>
+      <div class="field-hint">說你平常怎麼介紹自己就好，不用太正式</div>
+      <textarea id="bIntro" placeholder="例：我是 Jerry，做保險 12 年了，幫過上百個家庭弄清楚自己保了什麼、缺什麼。" style="min-height:72px;"></textarea>
+    </div>
+    <div class="field-group">
+      <label class="field-label">主要發布平台</label>
+      <div class="tag-group" id="bPlatform">
+        <span class="tag-opt" data-val="Instagram Reels">Instagram Reels</span>
+        <span class="tag-opt" data-val="TikTok">TikTok</span>
+        <span class="tag-opt" data-val="YouTube Shorts">YouTube Shorts</span>
+        <span class="tag-opt" data-val="Facebook Reels">Facebook Reels</span>
+        <span class="tag-opt" data-val="LINE Voom">LINE Voom</span>
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">影片長度偏好</label>
+      <div class="slider-row">
+        <span style="font-size:0.75rem;color:var(--mist)">15秒</span>
+        <input type="range" id="bDuration" min="15" max="90" step="15" value="60"
+               oninput="document.getElementById('bDurVal').textContent=this.value">
+        <span style="font-size:0.75rem;color:var(--mist)">90秒</span>
+        <span class="slider-val" id="bDurVal">60</span>
+        <span style="font-size:0.73rem;color:var(--mist)">秒</span>
+      </div>
+    </div>
+
+    <div class="btn-actions" style="margin-top:8px;">
+      <button class="btn btn-primary" onclick="saveBrandProfile()">✓ 儲存品牌設定</button>
+      <button class="btn btn-ghost" onclick="closeBrandModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ HEADER ═══ -->
+<header class="site-header">
+  <div class="header-left">
+    <h1>K<span class="gold-dot">·</span>短影音腳本生成器</h1>
+    <span class="sub">Script Studio</span>
+  </div>
+  <div class="brand-pill" onclick="openBrandModal()">
+    <span class="brand-dot unset" id="brandDot"></span>
+    <span class="brand-pill-name" id="brandPillName">尚未設定</span>
+    <span class="brand-pill-action">⚙ 品牌設定</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Step indicator — 2 steps in daily flow -->
+  <div class="steps" id="stepIndicator">
+    <div class="step-item active" id="si1">
+      <div class="step-num">01</div>
+      <span class="step-label">選題方向</span>
+    </div>
+    <div class="step-div"></div>
+    <div class="step-item" id="si2">
+      <div class="step-num">02</div>
+      <span class="step-label">挑選選題</span>
+    </div>
+    <div class="step-div"></div>
+    <div class="step-item" id="si3">
+      <div class="step-num">03</div>
+      <span class="step-label">生成腳本</span>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 1: Session inputs ═══ -->
+  <div id="step1">
+
+    <div class="no-brand-warn hidden" id="noBrandWarn" onclick="openBrandModal()">
+      <span>⚠️</span>
+      <span>你還沒有設定品牌底色，腳本將用通用風格生成。<strong style="text-decoration:underline;margin-left:4px;">點這裡先設定</strong>（只需要填一次）</span>
+    </div>
+
+    <!-- Mode toggle -->
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="modeOriginal" onclick="switchMode('original')">✦ 自由發想</button>
+      <button class="mode-btn" id="modeRef" onclick="switchMode('ref')">📎 參考影片</button>
+      <button class="mode-btn" id="modeNews" onclick="switchMode('news')">🌐 時事新聞</button>
+    </div>
+
+    <!-- ── 自由發想模式 ── -->
+    <div id="panelOriginal">
+      <div class="card">
+        <div class="card-title">這次的影片方向</div>
+        <div class="card-desc">只需要填這兩個欄位，AI 就會結合你的品牌底色，生成五個選題讓你挑。</div>
+
+        <div class="field-group">
+          <label class="field-label">這次想針對哪群受眾？</label>
+          <div class="field-hint">可複選。不選的話，AI 會用你品牌設定裡的預設受眾來發想。</div>
+          <div class="tag-group" id="sessionAudience">
+            <span class="tag-opt" data-val="30-40歲上班族">30-40歲上班族</span>
+            <span class="tag-opt" data-val="新婚或有小孩的家庭">新婚/有小孩家庭</span>
+            <span class="tag-opt" data-val="50歲以上準退休族">50歲以上準退休族</span>
+            <span class="tag-opt" data-val="小企業主或自雇者">小企業主/自雇者</span>
+            <span class="tag-opt" data-val="年輕社會新鮮人">年輕社會新鮮人</span>
+            <span class="tag-opt" data-val="高資產族群">高資產族群</span>
+            <span class="tag-opt" data-val="女性理財族群">女性理財族群</span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">主題方向或關鍵字 <span class="opt-badge">選填</span></label>
+          <div class="field-hint">有想法就填，沒想法也可以不填讓 AI 自由發想</div>
+          <input type="text" id="sessionTheme" placeholder="例：重大疾病險、年終要不要買保險、客戶真實故事…" />
+          <div class="theme-suggestions">
+            <span class="theme-pill" onclick="setTheme(this)">醫療費用有多貴</span>
+            <span class="theme-pill" onclick="setTheme(this)">保險常見誤解</span>
+            <span class="theme-pill" onclick="setTheme(this)">收入中斷風險</span>
+            <span class="theme-pill" onclick="setTheme(this)">退休金缺口</span>
+            <span class="theme-pill" onclick="setTheme(this)">年輕人為什麼要現在買</span>
+            <span class="theme-pill" onclick="setTheme(this)">理賠真實故事</span>
+            <span class="theme-pill" onclick="setTheme(this)">保費 vs 沒買的代價</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-actions">
+        <button class="btn btn-primary" onclick="generateTopics()">→ 生成選題</button>
+      </div>
+    </div>
+
+    <!-- ── 參考影片模式 ── -->
+    <div id="panelRef" class="hidden">
+      <div class="card">
+        <div class="card-title">參考影片</div>
+        <div class="card-desc">貼入你看到的參考影片連結或截圖，AI 會先分析它的選題邏輯和結構，再用你的品牌底色重新詮釋成 K 的版本。</div>
+
+        <!-- 輸入方式切換 -->
+        <div class="field-group">
+          <label class="field-label">輸入方式</label>
+          <div class="tag-group" style="margin-bottom:16px;">
+            <span class="tag-opt on" id="refTypeUrl" onclick="switchRefType('url')">🔗 貼連結</span>
+            <span class="tag-opt" id="refTypeImg" onclick="switchRefType('img')">🖼 上傳截圖</span>
+          </div>
+
+          <!-- 連結輸入 -->
+          <div id="refUrlPanel">
+            <input type="text" id="refUrl" placeholder="貼上 YouTube / Instagram / TikTok 連結…" />
+            <div class="field-hint" style="margin-top:8px;">貼入影片頁面連結，AI 會嘗試擷取頁面標題、描述與公開資訊來分析內容方向。</div>
+          </div>
+
+          <!-- 截圖上傳 -->
+          <div id="refImgPanel" class="hidden">
+            <div id="refDropzone" onclick="document.getElementById('refImgInput').click()"
+              style="border:2px dashed var(--cream);border-radius:12px;padding:32px 20px;text-align:center;cursor:pointer;transition:all 0.2s;"
+              onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--cream)'"
+              ondragover="event.preventDefault();this.style.borderColor='var(--gold)'"
+              ondrop="handleImgDrop(event)">
+              <div style="font-size:1.8rem;margin-bottom:8px;">🖼</div>
+              <div style="font-size:0.83rem;color:var(--mist);">點擊或拖曳截圖到這裡<br><span style="font-size:0.75rem;">支援 JPG、PNG、WEBP</span></div>
+            </div>
+            <input type="file" id="refImgInput" accept="image/*" style="display:none" onchange="handleImgSelect(event)">
+            <div id="refImgPreview" class="hidden" style="margin-top:12px;position:relative;">
+              <img id="refImgThumb" style="max-width:100%;max-height:200px;border-radius:10px;border:1px solid var(--border);" />
+              <button onclick="clearRefImg()" style="position:absolute;top:8px;right:8px;background:rgba(26,26,46,0.6);color:white;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:0.75rem;">✕ 清除</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">備註 <span class="opt-badge">選填</span></label>
+          <div class="field-hint">有什麼特別想保留的點，或想說的想法？</div>
+          <textarea id="refNote" placeholder="例：我很喜歡他開場那個反問句的方式、想用類似的節奏但換成退休金的議題…" style="min-height:72px;"></textarea>
+        </div>
+      </div>
+
+      <!-- 分析結果區 -->
+      <div id="refAnalysisCard" class="card hidden">
+        <div class="analysis-label">AI 解析結果</div>
+        <div id="refAnalysisOutput" class="ref-analysis"></div>
+        <div class="btn-actions" style="margin-top:16px;">
+          <button class="btn btn-primary" onclick="generateRefScript()">✦ 生成 K 的版本</button>
+          <button class="btn btn-ghost" onclick="resetRefAnalysis()">重新分析</button>
+        </div>
+      </div>
+
+      <div id="refAnalysisLoading" class="loading-state hidden">
+        <div class="spinner"></div>
+        <div class="loading-text" id="refLoadingText">分析參考影片中…</div>
+      </div>
+
+      <div class="btn-actions" id="refSubmitRow">
+        <button class="btn btn-primary" onclick="analyzeRef()">→ 分析參考影片</button>
+      </div>
+    </div>
+
+    <!-- ── 時事新聞模式 ── -->
+    <div id="panelNews" class="hidden">
+      <div class="card">
+        <div class="card-title">時事新聞轉腳本</div>
+        <div class="card-desc">把你今天早會吸收到的國際政經資訊貼進來，AI 會找出它跟保險、財務規劃的連結點，讓你選一個角度，再生成 K 的觀點版腳本。</div>
+
+        <!-- 輸入方式 -->
+        <div class="field-group">
+          <label class="field-label">新聞輸入方式</label>
+          <div class="tag-group" style="margin-bottom:16px;">
+            <span class="tag-opt on" id="newsTypeText" onclick="switchNewsType('text')">✏️ 自己打摘要</span>
+            <span class="tag-opt" id="newsTypeUrl" onclick="switchNewsType('url')">🔗 貼連結</span>
+            <span class="tag-opt" id="newsTypeImg" onclick="switchNewsType('img')">🖼 截圖</span>
+          </div>
+
+          <!-- 文字摘要 -->
+          <div id="newsTextPanel">
+            <textarea id="newsText" placeholder="例：美國聯準會本週宣布維持利率不變，但暗示年底前可能降息一碼。市場對此反應正面，道瓊上漲 1.2%…" style="min-height:110px;"></textarea>
+          </div>
+
+          <!-- 連結 -->
+          <div id="newsUrlPanel" class="hidden">
+            <input type="text" id="newsUrl" placeholder="貼上新聞連結（中文或英文媒體均可）…" />
+          </div>
+
+          <!-- 截圖 -->
+          <div id="newsImgPanel" class="hidden">
+            <div id="newsDropzone" onclick="document.getElementById('newsImgInput').click()"
+              style="border:2px dashed var(--cream);border-radius:12px;padding:28px 20px;text-align:center;cursor:pointer;transition:all 0.2s;"
+              onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--cream)'"
+              ondragover="event.preventDefault();this.style.borderColor='var(--gold)'"
+              ondrop="handleNewsImgDrop(event)">
+              <div style="font-size:1.6rem;margin-bottom:8px;">🗞️</div>
+              <div style="font-size:0.82rem;color:var(--mist);">點擊或拖曳新聞截圖<br><span style="font-size:0.75rem;">支援 JPG、PNG、WEBP</span></div>
+            </div>
+            <input type="file" id="newsImgInput" accept="image/*" style="display:none" onchange="handleNewsImgSelect(event)">
+            <div id="newsImgPreview" class="hidden" style="margin-top:12px;position:relative;">
+              <img id="newsImgThumb" style="max-width:100%;max-height:200px;border-radius:10px;border:1px solid var(--border);" />
+              <button onclick="clearNewsImg()" style="position:absolute;top:8px;right:8px;background:rgba(26,26,46,0.6);color:white;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:0.75rem;">✕ 清除</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">K 的初步想法 <span class="opt-badge">選填</span></label>
+          <div class="field-hint">你對這則新聞有什麼感觸或想法？填了之後腳本更有你的觀點，不只是在報新聞。</div>
+          <textarea id="newsViewpoint" placeholder="例：看到這則新聞我第一個想到的是，很多人以為通膨跟自己無關，但其實它每天都在吃掉你的保障缺口…" style="min-height:80px;"></textarea>
+        </div>
+      </div>
+
+      <!-- 角度選擇卡 -->
+      <div id="newsAnglesCard" class="card hidden">
+        <div class="card-title">選一個切入角度</div>
+        <div class="card-desc">AI 找到以下幾個跟你的業務有關聯的切入點，選一個最有感的，再生成腳本。</div>
+        <div id="newsAnglesLoading" class="loading-state hidden">
+          <div class="spinner"></div>
+          <div class="loading-text">分析新聞與財務規劃的關聯…</div>
+        </div>
+        <div id="newsAnglesGrid" class="topics-grid" style="margin-bottom:20px;"></div>
+        <div class="btn-actions">
+          <button class="btn btn-outline" onclick="reanalyzeNews()">↺ 換幾個角度</button>
+        </div>
+      </div>
+
+      <!-- 腳本生成按鈕區（角度選定後出現） -->
+      <div id="newsScriptRow" class="hidden">
+        <div class="btn-actions">
+          <button class="btn btn-primary" id="generateNewsScriptBtn" onclick="generateNewsScript()">✦ 生成 K 的觀點腳本</button>
+          <span id="newsSelectHint" style="font-size:0.77rem;color:var(--mist);">請先選一個角度</span>
+        </div>
+      </div>
+
+      <div id="newsAnalysisLoading" class="loading-state hidden">
+        <div class="spinner"></div>
+        <div class="loading-text" id="newsLoadingText">讀取新聞內容…</div>
+      </div>
+
+      <div class="btn-actions" id="newsSubmitRow">
+        <button class="btn btn-primary" onclick="analyzeNews()">→ 分析新聞，找切入點</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ STEP 2: Topic selection ═══ -->
+  <div id="step2" class="hidden">
+    <div class="card">
+      <div class="card-title">選題方向</div>
+      <div class="card-desc">點選你想做的選題。點右上角 × 移除不要的，或點「全部換新的」重新生成。</div>
+
+      <div id="topicsLoading" class="loading-state">
+        <div class="spinner"></div>
+        <div class="loading-text">根據你的品牌底色發想選題中…</div>
+      </div>
+
+      <div id="topicsBody" class="hidden">
+        <div class="topics-grid" id="topicsGrid"></div>
+        <div class="btn-actions">
+          <button class="btn btn-outline" onclick="regenerateTopics()">↺ 全部換新的</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="storyCard" style="display:none;">
+      <div class="card-title">加入你的故事或想法 <span class="opt-badge">選填</span></div>
+      <div class="card-desc">有沒有跟這個選題相關的親身經歷、客戶故事、或者想說的話？填了之後腳本會以你的故事為核心發想，真實感差很多。</div>
+      <div class="field-group">
+        <textarea id="personalStory" placeholder="例：有個客戶三年前說「我很健康不用買醫療險」，去年一場大病花了 80 萬，保費只夠賠 10 萬…那天我很難過，但更難過的是他。" style="min-height:100px;"></textarea>
+      </div>
+      <div class="btn-actions">
+        <button class="btn btn-primary" id="genScriptBtn" onclick="generateScript()" disabled>✦ 生成完整腳本</button>
+        <span id="selectHint" style="font-size:0.77rem;color:var(--mist);">請先點選上方一個選題</span>
+      </div>
+    </div>
+
+    <div class="btn-actions" style="margin-top:4px;">
+      <button class="btn btn-ghost" onclick="goToStep(1)">← 修改方向</button>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 3: Script output ═══ -->
+  <div id="step3" class="hidden">
+    <div class="card has-copy">
+      <div class="card-title">完整短影音腳本</div>
+      <div class="card-desc" id="scriptLabel"></div>
+
+      <div id="scriptLoading" class="loading-state">
+        <div class="spinner"></div>
+        <div class="loading-text">正在生成符合法規的腳本…</div>
+      </div>
+
+      <div id="scriptBody" class="hidden">
+        <button class="btn btn-ghost copy-btn" onclick="copyScript()">複製全文</button>
+        <div id="scriptOutput" class="script-output"></div>
+        <div class="compliance-banner">
+          <span>🛡️</span>
+          <span>本腳本已避免保證收益、誇大理賠、未持牌勸誘等高風險表達，發布前請再次確認符合金管會保險局行銷規範。</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-actions">
+      <button class="btn btn-primary" onclick="goToStep(2)">← 換一個選題</button>
+      <button class="btn btn-outline" onclick="generateScript()">↺ 重新生成腳本</button>
+      <button class="btn btn-ghost" onclick="goToStep(1)">換個主題方向</button>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+// ════════════════════════════════════════
+// STATE — 所有變數宣告必須在最前面
+// ════════════════════════════════════════
+const K_BRAND_DEFAULT = {
+  name: 'K',
+  specialty: '財務規劃與資產活化，協助客戶釐清財務結構、保障缺口與資產配置。什麼類型的保險需求都能承接。',
+  personality: ['說故事型', '溫柔有同理心', '專業可信賴'],
+  tone: ['口語化台灣腔', '情感驅動溫度感'],
+  selfIntro: '我是 K，29 歲。我當過老闆、也曾在月收入很高的金融產業工作，後來才發現那是現金盤。那段經歷讓我很清楚：錢放錯地方，跟沒有錢一樣危險。進入保險業不到兩年，我拿到了大單、也拿了獎，但這些對我來說只是結果——我更在意的，是幫你把錢放對地方。',
+  platforms: ['Instagram Reels'],
+  durationSec: 60,
+};
+
+let brandProfile = null;
+let sessionData = {};
+let topics = [];
+let selectedTopicIdx = -1;
+let currentMode = 'original';
+let currentRefType = 'url';
+let refImageBase64 = null;
+
+// ════════════════════════════════════════
+// INIT — 等 DOM 完全載入再執行
+// ════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', function() {
+  loadBrandFromStorage();
+  document.querySelectorAll('.tag-group').forEach(g => {
+    g.querySelectorAll('.tag-opt').forEach(t => {
+      t.addEventListener('click', () => t.classList.toggle('on'));
+    });
+  });
+});
+
+// ════════════════════════════════════════
+// BRAND PROFILE — localStorage persistence
+// ════════════════════════════════════════
+
+function loadBrandFromStorage() {
+  try {
+    const raw = localStorage.getItem('insuranceBrand_v2');
+    if (raw) {
+      // 使用者自己修改過的版本優先
+      brandProfile = JSON.parse(raw);
+    } else {
+      // 第一次開啟：自動載入 K 的預設品牌底色
+      brandProfile = K_BRAND_DEFAULT;
+    }
+    refreshBrandPill();
+  } catch(e) {
+    brandProfile = K_BRAND_DEFAULT;
+    refreshBrandPill();
+  }
+}
+
+function refreshBrandPill() {
+  if (!brandProfile) return;
+  document.getElementById('brandPillName').textContent = brandProfile.name || '已設定';
+  const dot = document.getElementById('brandDot');
+  dot.classList.remove('unset');
+  document.getElementById('noBrandWarn').classList.add('hidden');
+}
+
+function openBrandModal() {
+  if (brandProfile) {
+    document.getElementById('bName').value = brandProfile.name || '';
+    document.getElementById('bSpecialty').value = brandProfile.specialty || '';
+    document.getElementById('bIntro').value = brandProfile.selfIntro || '';
+    const dur = brandProfile.durationSec || 60;
+    document.getElementById('bDuration').value = dur;
+    document.getElementById('bDurVal').textContent = dur;
+    setTagsOn('bPersonality', brandProfile.personality || []);
+    setTagsOn('bTone', brandProfile.tone || []);
+    setTagsOn('bPlatform', brandProfile.platforms || []);
+  }
+  document.getElementById('brandOverlay').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeBrandModal() {
+  document.getElementById('brandOverlay').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+function setTagsOn(groupId, values) {
+  document.querySelectorAll(`#${groupId} .tag-opt`).forEach(t => {
+    t.classList.toggle('on', values.includes(t.dataset.val));
+  });
+}
+
+function getTagsFrom(groupId) {
+  return [...document.querySelectorAll(`#${groupId} .tag-opt.on`)].map(t => t.dataset.val);
+}
+
+function saveBrandProfile() {
+  const name = document.getElementById('bName').value.trim();
+  if (!name) { alert('請填寫你的名字或稱呼'); return; }
+  brandProfile = {
+    name,
+    specialty: document.getElementById('bSpecialty').value.trim() || '全方位保障規劃',
+    personality: getTagsFrom('bPersonality'),
+    tone: getTagsFrom('bTone'),
+    selfIntro: document.getElementById('bIntro').value.trim(),
+    platforms: getTagsFrom('bPlatform'),
+    durationSec: parseInt(document.getElementById('bDuration').value),
+  };
+  try { localStorage.setItem('insuranceBrand_v2', JSON.stringify(brandProfile)); } catch(e) {}
+  refreshBrandPill();
+  closeBrandModal();
+}
+
+// ════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════
+function setTheme(el) {
+  document.getElementById('sessionTheme').value = el.textContent;
+}
+
+function getBrandContext() {
+  // Graceful fallback if brand never set
+  return brandProfile || {
+    name: '這位保險顧問',
+    specialty: '全方位保障規劃',
+    personality: ['親切專業'],
+    tone: ['口語化'],
+    selfIntro: '',
+    platforms: ['Instagram Reels'],
+    durationSec: 60,
+  };
+}
+
+// ════════════════════════════════════════
+// STEP NAVIGATION
+// ════════════════════════════════════════
+function goToStep(n) {
+  [1,2,3].forEach(i => {
+    document.getElementById(`step${i}`).classList.toggle('hidden', i !== n);
+    const si = document.getElementById(`si${i}`);
+    si.classList.toggle('active', i === n);
+    si.classList.toggle('done', i < n);
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ════════════════════════════════════════
+// CLAUDE API
+// ════════════════════════════════════════
+async function callClaude(systemPrompt, userMsg, maxTokens = 1000) {
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-api-key": "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", "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: maxTokens,
+      system: systemPrompt,
+      messages: [{ role: "user", content: userMsg }]
+    })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.content.map(b => b.text || '').join('');
+}
+
+// ════════════════════════════════════════
+// GENERATE TOPICS
+// ════════════════════════════════════════
+async function generateTopics() {
+  sessionData = {
+    audience: getTagsFrom('sessionAudience'),
+    theme: document.getElementById('sessionTheme').value.trim(),
+  };
+  goToStep(2);
+  document.getElementById('topicsLoading').classList.remove('hidden');
+  document.getElementById('topicsBody').classList.add('hidden');
+  document.getElementById('storyCard').style.display = 'none';
+
+  const bp = getBrandContext();
+  const audience = sessionData.audience.length ? sessionData.audience.join('、') : '一般受眾';
+  const theme = sessionData.theme || '由 AI 自由發想，適合此顧問品牌的話題';
+
+  const sys = `你是專業保險財經短影音內容策略師，熟悉台灣金管會行銷規範。
+規範：不得有保證獲利字眼、不得誇大理賠、不得即時催促購買。
+你只能回傳 JSON，不要有任何 markdown backtick 或前言。`;
+
+  const msg = `根據以下品牌底色和本次方向，生成5個短影音選題。
+五個選題必須各使用一種不同分類（brand品牌感知 / viral流量鉤子 / education價值教育 / emotion情感共鳴 / cta行動召喚），不重複。
+
+【品牌底色】
+顧問：${bp.name}
+定位：${bp.specialty}
+人格：${(bp.personality||[]).join('、') || '親切專業'}
+語氣：${(bp.tone||[]).join('、') || '口語化'}
+自介：${bp.selfIntro || '無'}
+平台：${(bp.platforms||[]).join('、') || 'Instagram Reels'}
+影片長度：${bp.durationSec || 60}秒
+
+【本次方向】
+目標受眾：${audience}
+主題方向：${theme}
+
+回傳純 JSON 陣列，共5個：
+[{"type":"education","typeLabel":"價值教育","title":"選題標題15字內","hook":"開場鉤子20字內讓人第一秒停下來"}]`;
+
+  try {
+    const raw = await callClaude(sys, msg);
+    topics = JSON.parse(raw.replace(/```json|```/g, '').trim());
+    renderTopics();
+    document.getElementById('topicsLoading').classList.add('hidden');
+    document.getElementById('topicsBody').classList.remove('hidden');
+    document.getElementById('storyCard').style.display = 'block';
+  } catch(e) {
+    document.getElementById('topicsLoading').innerHTML =
+      `<div style="color:var(--rust);font-size:0.83rem;">生成失敗，請重試。<br><small>${e.message}</small></div>`;
+  }
+}
+
+async function regenerateTopics() {
+  topics = [];
+  document.getElementById('topicsLoading').classList.remove('hidden');
+  document.getElementById('topicsBody').classList.add('hidden');
+  document.getElementById('storyCard').style.display = 'none';
+
+  const bp = getBrandContext();
+  const audience = sessionData.audience.length ? sessionData.audience.join('、') : '一般受眾';
+  const theme = sessionData.theme || '由 AI 自由發想';
+
+  const sys = `你是專業保險財經短影音內容策略師，熟悉台灣金管會行銷規範。只能回傳 JSON，不要有任何 markdown backtick 或前言。`;
+  const msg = `請重新生成5個完全不同的短影音選題，五個分類各一（brand/viral/education/emotion/cta），不重複。
+品牌：${bp.name}，定位：${bp.specialty}，受眾：${audience}，主題：${theme}
+回傳純 JSON：[{"type":"...","typeLabel":"...","title":"...","hook":"..."}]`;
+
+  try {
+    const raw = await callClaude(sys, msg);
+    topics = JSON.parse(raw.replace(/```json|```/g, '').trim());
+    renderTopics();
+    document.getElementById('topicsLoading').classList.add('hidden');
+    document.getElementById('topicsBody').classList.remove('hidden');
+    document.getElementById('storyCard').style.display = 'block';
+  } catch(e) {
+    document.getElementById('topicsLoading').innerHTML =
+      `<div style="color:var(--rust);font-size:0.83rem;">生成失敗。<br><small>${e.message}</small></div>`;
+  }
+}
+
+function renderTopics() {
+  const grid = document.getElementById('topicsGrid');
+  grid.innerHTML = '';
+  topics.forEach((t, i) => {
+    if (t.removed) return;
+    const el = document.createElement('div');
+    el.className = 'topic-card';
+    el.dataset.idx = i;
+    el.innerHTML = `
+      <button class="topic-x" onclick="removeTopic(event,${i})">×</button>
+      <div class="topic-header">
+        <div class="topic-title">${t.title}</div>
+        <span class="topic-badge">${t.typeLabel}</span>
+      </div>
+      <div class="topic-hook">"${t.hook}"</div>`;
+    el.addEventListener('click', () => selectTopic(i, el));
+    grid.appendChild(el);
+  });
+  selectedTopicIdx = -1;
+  document.getElementById('genScriptBtn').disabled = true;
+  document.getElementById('selectHint').style.display = 'inline';
+}
+
+function selectTopic(idx, el) {
+  document.querySelectorAll('.topic-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedTopicIdx = idx;
+  document.getElementById('genScriptBtn').disabled = false;
+  document.getElementById('selectHint').style.display = 'none';
+  document.getElementById('storyCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function removeTopic(e, idx) {
+  e.stopPropagation();
+  topics[idx].removed = true;
+  renderTopics();
+}
+
+// ════════════════════════════════════════
+// GENERATE SCRIPT
+// ════════════════════════════════════════
+async function generateScript() {
+  if (selectedTopicIdx < 0) return;
+  const topic = topics[selectedTopicIdx];
+  const story = document.getElementById('personalStory').value.trim();
+  const bp = getBrandContext();
+
+  goToStep(3);
+  document.getElementById('scriptLabel').textContent = `選題：${topic.title}（${topic.typeLabel}）`;
+  document.getElementById('scriptLoading').classList.remove('hidden');
+  document.getElementById('scriptBody').classList.add('hidden');
+
+  const dur = bp.durationSec || 60;
+
+  const sys = `你是台灣頂尖的保險財經短影音腳本顧問，同時精通社群文案與金管會行銷法規。
+
+腳本結構（依影片長度調整比例）：
+【鉤子】前3秒，反問/數字/衝突句，不超過15字
+【痛點放大】描述受眾熟悉的困境
+【核心內容】教育乾貨或故事展開，2-3個小點
+【轉折洞見】給出觀點或驚喜結論
+【行動召喚】引導留言/收藏/追蹤，不得催促購買
+
+法規紅線（絕對不能出現）：
+保證收益、保證報酬率、一定賺、誇大理賠條件、「馬上找我買」等即時催促、詆毀競品
+
+輸出：純文字，每段前加【段落名稱】，最後加「📌 發文文案」（IG caption 含 hashtag）`;
+
+  const msg = `請生成一支 ${dur} 秒短影音的完整口播腳本。
+
+顧問品牌：
+名稱：${bp.name}
+定位：${bp.specialty}
+人格：${(bp.personality||[]).join('、') || '親切專業'}
+語氣：${(bp.tone||[]).join('、') || '口語化'}
+自介：${bp.selfIntro || '無'}
+平台：${(bp.platforms||[]).join('、') || 'Instagram Reels'}
+目標受眾：${sessionData.audience.length ? sessionData.audience.join('、') : '一般受眾'}
+
+選定選題：
+標題：${topic.title}
+類型：${topic.typeLabel}
+預設鉤子：${topic.hook}
+
+${story ? `顧問的故事或想法（以此為腳本核心）：\n${story}` : '（無額外故事，請自行發想符合品牌定位的情境）'}
+
+請確保：語氣符合顧問人格、每段標記時間點、結尾引導互動非購買、完全符合金管會規範。`;
+
+  try {
+    const result = await callClaude(sys, msg, 1000);
+    document.getElementById('scriptLoading').classList.add('hidden');
+    document.getElementById('scriptBody').classList.remove('hidden');
+    renderScript(result);
+  } catch(e) {
+    document.getElementById('scriptLoading').innerHTML =
+      `<div style="color:var(--rust);font-size:0.83rem;">生成失敗，請重試。<br><small>${e.message}</small></div>`;
+  }
+}
+
+function renderScript(text) {
+  const fmt = text
+    .replace(/【(.+?)】/g, (_, s) => `\n\n✦ ${s}\n${'─'.repeat(26)}\n`)
+    .replace(/📌/g, '\n\n📌');
+  document.getElementById('scriptOutput').textContent = fmt.trim();
+}
+
+function copyScript() {
+  navigator.clipboard.writeText(document.getElementById('scriptOutput').textContent).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = '✓ 已複製';
+    setTimeout(() => btn.textContent = '複製全文', 2000);
+  });
+}
+// ════════════════════════════════════════
+// MODE SWITCH (自由發想 / 參考影片 / 時事新聞)
+// ════════════════════════════════════════
+function switchMode(mode) {
+  currentMode = mode;
+  ['original','ref','news'].forEach(m => {
+    document.getElementById('mode' + m.charAt(0).toUpperCase() + m.slice(1)).classList.toggle('active', mode === m);
+    document.getElementById('panel' + m.charAt(0).toUpperCase() + m.slice(1)).classList.toggle('hidden', mode !== m);
+  });
+}
+
+function switchRefType(type) {
+  currentRefType = type;
+  document.getElementById('refTypeUrl').classList.toggle('on', type === 'url');
+  document.getElementById('refTypeImg').classList.toggle('on', type === 'img');
+  document.getElementById('refUrlPanel').classList.toggle('hidden', type !== 'url');
+  document.getElementById('refImgPanel').classList.toggle('hidden', type !== 'img');
+}
+
+function handleImgSelect(e) {
+  const file = e.target.files[0];
+  if (file) loadRefImage(file);
+}
+
+function handleImgDrop(e) {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) loadRefImage(file);
+}
+
+function loadRefImage(file) {
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    refImageBase64 = ev.target.result.split(',')[1];
+    document.getElementById('refImgThumb').src = ev.target.result;
+    document.getElementById('refImgPreview').classList.remove('hidden');
+    document.getElementById('refDropzone').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearRefImg() {
+  refImageBase64 = null;
+  document.getElementById('refImgThumb').src = '';
+  document.getElementById('refImgPreview').classList.add('hidden');
+  document.getElementById('refDropzone').style.display = 'block';
+  document.getElementById('refImgInput').value = '';
+}
+
+function resetRefAnalysis() {
+  document.getElementById('refAnalysisCard').classList.add('hidden');
+  document.getElementById('refSubmitRow').classList.remove('hidden');
+}
+
+// ════════════════════════════════════════
+// ANALYZE REFERENCE VIDEO
+// ════════════════════════════════════════
+async function analyzeRef() {
+  const bp = getBrandContext();
+  const note = document.getElementById('refNote').value.trim();
+
+  // Validate input
+  if (currentRefType === 'url') {
+    const url = document.getElementById('refUrl').value.trim();
+    if (!url) { alert('請先貼入影片連結'); return; }
+  } else {
+    if (!refImageBase64) { alert('請先上傳截圖'); return; }
+  }
+
+  document.getElementById('refSubmitRow').classList.add('hidden');
+  document.getElementById('refAnalysisCard').classList.add('hidden');
+  document.getElementById('refAnalysisLoading').classList.remove('hidden');
+
+  try {
+    let refContent = '';
+
+    if (currentRefType === 'url') {
+      const url = document.getElementById('refUrl').value.trim();
+      document.getElementById('refLoadingText').textContent = '正在擷取連結內容…';
+
+      // Use Claude with web search to fetch page info
+      const fetchSys = `你是一個內容分析師。使用者會提供一個影片連結，請你根據連結的 URL 特徵（平台、頻道、標題關鍵字等）以及你對這類型內容的認知，推測並描述這支影片最可能的內容方向、選題邏輯、鉤子結構。如果無法取得實際內容，請誠實說明並根據 URL 做出最合理的推測。用繁體中文回答。`;
+      const fetchMsg = `影片連結：${url}\n\n請分析這支影片的：\n1. 選題核心（它在談什麼議題）\n2. 鉤子設計（開場怎麼抓住觀眾）\n3. 內容結構（大概怎麼展開）\n4. 情緒節奏（偏教育、故事、煽情、還是幽默）\n\n${note ? `補充備註：${note}` : ''}`;
+
+      refContent = await callClaude(fetchSys, fetchMsg);
+
+    } else {
+      // Image analysis
+      document.getElementById('refLoadingText').textContent = '辨識截圖內容…';
+
+      const imgSys = `你是一個短影音內容分析師，擅長從截圖解讀影片的選題邏輯和結構。用繁體中文回答。`;
+
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-api-key": "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", "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          system: imgSys,
+          messages: [{
+            role: "user",
+            content: [
+              {
+                type: "image",
+                source: { type: "base64", media_type: "image/jpeg", data: refImageBase64 }
+              },
+              {
+                type: "text",
+                text: `請分析這張截圖中的短影音內容：\n1. 選題核心（它在談什麼議題）\n2. 鉤子設計（開場怎麼抓住觀眾）\n3. 內容結構（大概怎麼展開）\n4. 情緒節奏（偏教育、故事、煽情、還是幽默）\n\n${note ? `補充備註：${note}` : ''}`
+              }
+            ]
+          }]
+        })
+      });
+      const data = await response.json();
+      if (data.error) throw new Error(data.error.message);
+      refContent = data.content.map(b => b.text || '').join('');
+    }
+
+    // Store for script generation
+    window._refAnalysis = refContent;
+
+    document.getElementById('refAnalysisLoading').classList.add('hidden');
+    document.getElementById('refAnalysisOutput').textContent = refContent;
+    document.getElementById('refAnalysisCard').classList.remove('hidden');
+
+  } catch(e) {
+    document.getElementById('refAnalysisLoading').classList.add('hidden');
+    document.getElementById('refSubmitRow').classList.remove('hidden');
+    alert(`分析失敗：${e.message}`);
+  }
+}
+
+// ════════════════════════════════════════
+// GENERATE REF SCRIPT (跳過選題，直接出腳本)
+// ════════════════════════════════════════
+async function generateRefScript() {
+  const bp = getBrandContext();
+  const note = document.getElementById('refNote').value.trim();
+  const refAnalysis = window._refAnalysis || '';
+  const dur = bp.durationSec || 60;
+
+  // Jump to step 3
+  goToStep(3);
+  document.getElementById('scriptLabel').textContent = '參考影片 → K 的詮釋版本';
+  document.getElementById('scriptLoading').classList.remove('hidden');
+  document.getElementById('scriptBody').classList.add('hidden');
+
+  const sys = `你是台灣頂尖的保險財經短影音腳本顧問，同時精通社群文案與金管會行銷法規。
+
+你的任務是「重新詮釋」——不是抄，而是抓住參考影片的選題核心與結構邏輯，用這位顧問自己的品牌聲音、人生故事、和語言風格，做出屬於他的版本。
+
+腳本結構：
+【鉤子】前3秒，反問/數字/衝突句，不超過15字
+【痛點放大】描述受眾熟悉的困境
+【核心內容】教育乾貨或故事展開，2-3個小點
+【轉折洞見】給出觀點或驚喜結論
+【行動召喚】引導留言/收藏/追蹤，不得催促購買
+
+法規紅線（絕對不能出現）：
+保證收益、保證報酬率、一定賺、誇大理賠條件、即時催促購買、詆毀競品
+
+輸出：純文字，每段前加【段落名稱】，最後加「📌 發文文案」（IG caption 含 hashtag）`;
+
+  const msg = `請根據以下資訊，生成一支 ${dur} 秒短影音的完整口播腳本。
+
+【顧問品牌底色】
+名稱：${bp.name}
+定位：${bp.specialty}
+人格：${(bp.personality||[]).join('、')}
+語氣：${(bp.tone||[]).join('、')}
+自介：${bp.selfIntro}
+平台：${(bp.platforms||[]).join('、')}
+
+【參考影片分析】
+${refAnalysis}
+
+【任務說明】
+這不是要抄這支影片，而是借用它的選題邏輯和結構節奏，用 ${bp.name} 自己的品牌聲音重新詮釋。${bp.name} 有創業經歷、踩過現金盤的真實故事、進入保險業不到兩年就拿到大單的背景——這些都是可以融入腳本的素材。
+
+${note ? `顧問的額外備註：${note}` : ''}
+
+請確保：語氣完全符合顧問人格、每段標記時間點、結尾引導互動非購買、完全符合金管會規範。`;
+
+  try {
+    const result = await callClaude(sys, msg, 1000);
+    document.getElementById('scriptLoading').classList.add('hidden');
+    document.getElementById('scriptBody').classList.remove('hidden');
+    renderScript(result);
+  } catch(e) {
+    document.getElementById('scriptLoading').innerHTML =
+      `<div style="color:var(--rust);font-size:0.83rem;">生成失敗，請重試。<br><small>${e.message}</small></div>`;
+  }
+}
+// ════════════════════════════════════════
+// NEWS MODE
+// ════════════════════════════════════════
+let newsImageBase64 = null;
+let selectedNewsAngleIdx = -1;
+let newsAngles = [];
+let newsContext = '';
+
+function switchNewsType(type) {
+  ['text','url','img'].forEach(t => {
+    document.getElementById('newsType' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('on', type === t);
+    document.getElementById('newsPanel' + t.charAt(0).toUpperCase() + t.slice(1) + (t === 'text' ? 'Panel' : 'Panel')).classList.toggle('hidden', type !== t);
+  });
+}
+
+// Fix: simpler switchNewsType
+function switchNewsType(type) {
+  document.getElementById('newsTypeText').classList.toggle('on', type === 'text');
+  document.getElementById('newsTypeUrl').classList.toggle('on', type === 'url');
+  document.getElementById('newsTypeImg').classList.toggle('on', type === 'img');
+  document.getElementById('newsTextPanel').classList.toggle('hidden', type !== 'text');
+  document.getElementById('newsUrlPanel').classList.toggle('hidden', type !== 'url');
+  document.getElementById('newsImgPanel').classList.toggle('hidden', type !== 'img');
+}
+
+function handleNewsImgSelect(e) {
+  const file = e.target.files[0];
+  if (file) loadNewsImage(file);
+}
+
+function handleNewsImgDrop(e) {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) loadNewsImage(file);
+}
+
+function loadNewsImage(file) {
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    newsImageBase64 = ev.target.result.split(',')[1];
+    document.getElementById('newsImgThumb').src = ev.target.result;
+    document.getElementById('newsImgPreview').classList.remove('hidden');
+    document.getElementById('newsDropzone').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearNewsImg() {
+  newsImageBase64 = null;
+  document.getElementById('newsImgThumb').src = '';
+  document.getElementById('newsImgPreview').classList.add('hidden');
+  document.getElementById('newsDropzone').style.display = 'block';
+  document.getElementById('newsImgInput').value = '';
+}
+
+// ── Step 1: 擷取新聞內容 + 分析切入角度 ──
+async function analyzeNews() {
+  const bp = getBrandContext();
+  const viewpoint = document.getElementById('newsViewpoint').value.trim();
+
+  // Determine active input type
+  const activeType = document.getElementById('newsTypeText').classList.contains('on') ? 'text'
+    : document.getElementById('newsTypeUrl').classList.contains('on') ? 'url' : 'img';
+
+  // Validate
+  if (activeType === 'text' && !document.getElementById('newsText').value.trim()) {
+    alert('請先輸入新聞摘要'); return;
+  }
+  if (activeType === 'url' && !document.getElementById('newsUrl').value.trim()) {
+    alert('請先貼入新聞連結'); return;
+  }
+  if (activeType === 'img' && !newsImageBase64) {
+    alert('請先上傳新聞截圖'); return;
+  }
+
+  document.getElementById('newsSubmitRow').classList.add('hidden');
+  document.getElementById('newsAnglesCard').classList.add('hidden');
+  document.getElementById('newsScriptRow').classList.add('hidden');
+  document.getElementById('newsAnalysisLoading').classList.remove('hidden');
+
+  try {
+    // Step A: Get news content
+    let rawNews = '';
+
+    if (activeType === 'text') {
+      rawNews = document.getElementById('newsText').value.trim();
+      document.getElementById('newsLoadingText').textContent = '分析新聞內容…';
+
+    } else if (activeType === 'url') {
+      document.getElementById('newsLoadingText').textContent = '擷取新聞連結…';
+      const url = document.getElementById('newsUrl').value.trim();
+      const fetchSys = `你是新聞摘要助理。根據使用者提供的新聞連結，盡可能描述這篇新聞的核心內容。如果無法直接存取，根據 URL 特徵做合理推測，並說明。用繁體中文回答，100字內。`;
+      rawNews = await callClaude(fetchSys, `新聞連結：${url}`);
+
+    } else {
+      document.getElementById('newsLoadingText').textContent = '辨識截圖內容…';
+      const imgRes = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-api-key": "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", "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 600,
+          messages: [{
+            role: "user",
+            content: [
+              { type: "image", source: { type: "base64", media_type: "image/jpeg", data: newsImageBase64 } },
+              { type: "text", text: "請描述這張新聞截圖的主要內容，100字內，繁體中文。" }
+            ]
+          }]
+        })
+      });
+      const imgData = await imgRes.json();
+      if (imgData.error) throw new Error(imgData.error.message);
+      rawNews = imgData.content.map(b => b.text || '').join('');
+    }
+
+    newsContext = rawNews;
+    document.getElementById('newsLoadingText').textContent = '找出與財務規劃的關聯…';
+
+    // Step B: Generate 2-3 angle options
+    const anglesSys = `你是保險財務規劃的內容策略師。你的任務是把一則國際政經新聞，轉化成跟「保險、財務規劃、資產活化」相關的短影音切入角度。
+
+切入邏輯：新聞是觸發點，不是主題。重點是「這件事對一般人的財務有什麼影響」，而不是在報新聞。
+
+你只能回傳 JSON，不要有任何 markdown backtick 或前言。`;
+
+    const anglesMsg = `新聞內容：
+${rawNews}
+
+顧問背景：${bp.name}，${bp.specialty}
+${viewpoint ? `顧問的初步想法：${viewpoint}` : ''}
+
+請生成 3 個不同的短影音切入角度，每個角度必須：
+1. 跟保險或財務規劃有明確關聯
+2. 對一般人有感（不能太學術）
+3. 用 K 的說故事風格能自然切入
+
+回傳純 JSON：
+[{"angle":"切入角度標題（15字內）","connection":"新聞跟財務規劃的關聯說明（30字內）","hook":"建議的開場鉤子（20字內）"}]`;
+
+    const anglesRaw = await callClaude(anglesSys, anglesMsg);
+    newsAngles = JSON.parse(anglesRaw.replace(/```json|```/g, '').trim());
+
+    document.getElementById('newsAnalysisLoading').classList.add('hidden');
+    renderNewsAngles();
+    document.getElementById('newsAnglesCard').classList.remove('hidden');
+    document.getElementById('newsScriptRow').classList.remove('hidden');
+
+  } catch(e) {
+    document.getElementById('newsAnalysisLoading').classList.add('hidden');
+    document.getElementById('newsSubmitRow').classList.remove('hidden');
+    alert(`分析失敗：${e.message}`);
+  }
+}
+
+function renderNewsAngles() {
+  const grid = document.getElementById('newsAnglesGrid');
+  grid.innerHTML = '';
+  selectedNewsAngleIdx = -1;
+  document.getElementById('newsSelectHint').style.display = 'inline';
+  document.getElementById('generateNewsScriptBtn') && (document.getElementById('generateNewsScriptBtn').disabled = true);
+
+  newsAngles.forEach((a, i) => {
+    const el = document.createElement('div');
+    el.className = 'topic-card';
+    el.innerHTML = `
+      <div class="topic-header">
+        <div class="topic-title">${a.angle}</div>
+        <span class="topic-badge" style="background:rgba(127,156,185,0.15);color:var(--mist);">切入點</span>
+      </div>
+      <div class="topic-hook" style="margin-bottom:6px;">${a.connection}</div>
+      <div style="font-size:0.77rem;color:var(--gold);font-style:italic;">"${a.hook}"</div>`;
+    el.addEventListener('click', () => {
+      document.querySelectorAll('#newsAnglesGrid .topic-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedNewsAngleIdx = i;
+      document.getElementById('newsSelectHint').style.display = 'none';
+    });
+    grid.appendChild(el);
+  });
+}
+
+async function reanalyzeNews() {
+  newsAngles = [];
+  document.getElementById('newsAnglesGrid').innerHTML = '';
+  document.getElementById('newsAnglesLoading').classList.remove('hidden');
+  // Re-run angles generation with same newsContext
+  const bp = getBrandContext();
+  const viewpoint = document.getElementById('newsViewpoint').value.trim();
+
+  const sys = `你是保險財務規劃的內容策略師。只能回傳 JSON，不要有任何 markdown backtick 或前言。`;
+  const msg = `請重新生成 3 個完全不同的短影音切入角度（跟上次不同），基於以下新聞：
+${newsContext}
+顧問：${bp.name}，${bp.specialty}
+${viewpoint ? `顧問想法：${viewpoint}` : ''}
+回傳純 JSON：[{"angle":"...","connection":"...","hook":"..."}]`;
+
+  try {
+    const raw = await callClaude(sys, msg);
+    newsAngles = JSON.parse(raw.replace(/```json|```/g, '').trim());
+    document.getElementById('newsAnglesLoading').classList.add('hidden');
+    renderNewsAngles();
+  } catch(e) {
+    document.getElementById('newsAnglesLoading').classList.add('hidden');
+    alert(`重新分析失敗：${e.message}`);
+  }
+}
+
+// ── Step 2: 生成腳本 ──
+async function generateNewsScript() {
+  if (selectedNewsAngleIdx < 0) { alert('請先選一個切入角度'); return; }
+  const angle = newsAngles[selectedNewsAngleIdx];
+  const bp = getBrandContext();
+  const viewpoint = document.getElementById('newsViewpoint').value.trim();
+  const dur = bp.durationSec || 60;
+
+  goToStep(3);
+  document.getElementById('scriptLabel').textContent = `時事切入：${angle.angle}`;
+  document.getElementById('scriptLoading').classList.remove('hidden');
+  document.getElementById('scriptBody').classList.add('hidden');
+
+  const sys = `你是台灣頂尖的保險財經短影音腳本顧問，同時精通社群文案與金管會行銷法規。
+
+你的任務是把國際政經新聞轉化成跟保險/財務規劃有關的短影音腳本。核心原則：
+- 新聞是開場的觸發點，不是主角——主角是觀眾的財務處境
+- 不要變成新聞播報，要讓人感覺「這跟我有關」
+- 用顧問自己的視角和生活經驗帶出洞見
+
+腳本結構：
+【鉤子】前3秒，用新聞事件或數字勾住人，不超過15字
+【新聞連結】這件事跟你的生活/財務有什麼關係（10秒內說清楚）
+【核心洞見】顧問的觀點和建議，2-3個小點
+【行動召喚】引導留言/收藏/追蹤，不得催促購買
+
+法規紅線：保證收益、誇大理賠、即時催促購買、詆毀競品——絕對不能出現
+
+輸出：純文字，每段前加【段落名稱】，最後加「📌 發文文案」（IG caption 含 hashtag）`;
+
+  const msg = `請生成一支 ${dur} 秒短影音的完整口播腳本。
+
+【顧問品牌底色】
+名稱：${bp.name}
+定位：${bp.specialty}
+人格：${(bp.personality||[]).join('、')}
+語氣：${(bp.tone||[]).join('、')}
+自介：${bp.selfIntro}
+平台：${(bp.platforms||[]).join('、')}
+
+【新聞背景】
+${newsContext}
+
+【選定切入角度】
+角度：${angle.angle}
+關聯說明：${angle.connection}
+建議鉤子：${angle.hook}
+
+${viewpoint ? `【K 的觀點/想法】\n${viewpoint}` : ''}
+
+請確保：
+1. 開場用新聞事件帶出跟觀眾的財務關聯，不是在播報新聞
+2. K 的個人故事和視角（創業、踩過坑）可以自然融入作為信任佐證
+3. 語氣符合 K 的人格（穩重有質感、說故事型）
+4. 結尾引導互動而非購買
+5. 完全符合金管會規範`;
+
+  try {
+    const result = await callClaude(sys, msg, 1000);
+    document.getElementById('scriptLoading').classList.add('hidden');
+    document.getElementById('scriptBody').classList.remove('hidden');
+    renderScript(result);
+  } catch(e) {
+    document.getElementById('scriptLoading').innerHTML =
+      `<div style="color:var(--rust);font-size:0.83rem;">生成失敗，請重試。<br><small>${e.message}</small></div>`;
+  }
+}
+</script>
+</body>
+</html>
