@@ -574,8 +574,19 @@ input[type="range"]::-webkit-slider-thumb {
     <!-- 新增故事 -->
     <div style="background:var(--paper);border-radius:12px;padding:16px 18px;margin-bottom:20px;">
       <div style="font-size:0.78rem;font-weight:500;color:var(--ink);margin-bottom:10px;">＋ 新增故事</div>
-      <div style="display:flex;gap:8px;margin-bottom:8px;">
-        <input type="text" id="storyTagInput" placeholder="標籤（例：客戶案例、創業故事）" style="flex:1;font-size:0.82rem;" />
+      <div style="margin-bottom:8px;">
+        <div style="font-size:0.72rem;color:var(--mist);margin-bottom:6px;">選一個標籤分類（或自己輸入）</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;" id="storyTagPresets">
+          <span onclick="setStoryTag(this)" style="padding:4px 12px;border-radius:16px;border:1.5px solid var(--cream);font-size:0.75rem;cursor:pointer;background:var(--paper);transition:all 0.18s;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--cream)';this.style.color=''">客戶案例</span>
+          <span onclick="setStoryTag(this)" style="padding:4px 12px;border-radius:16px;border:1.5px solid var(--cream);font-size:0.75rem;cursor:pointer;background:var(--paper);transition:all 0.18s;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--cream)';this.style.color=''">理賠故事</span>
+          <span onclick="setStoryTag(this)" style="padding:4px 12px;border-radius:16px;border:1.5px solid var(--cream);font-size:0.75rem;cursor:pointer;background:var(--paper);transition:all 0.18s;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--cream)';this.style.color=''">創業經歷</span>
+          <span onclick="setStoryTag(this)" style="padding:4px 12px;border-radius:16px;border:1.5px solid var(--cream);font-size:0.75rem;cursor:pointer;background:var(--paper);transition:all 0.18s;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--cream)';this.style.color=''">踩雷經驗</span>
+          <span onclick="setStoryTag(this)" style="padding:4px 12px;border-radius:16px;border:1.5px solid var(--cream);font-size:0.75rem;cursor:pointer;background:var(--paper);transition:all 0.18s;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--cream)';this.style.color=''">財務觀念</span>
+          <span onclick="setStoryTag(this)" style="padding:4px 12px;border-radius:16px;border:1.5px solid var(--cream);font-size:0.75rem;cursor:pointer;background:var(--paper);transition:all 0.18s;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--cream)';this.style.color=''">市場觀察</span>
+          <span onclick="setStoryTag(this)" style="padding:4px 12px;border-radius:16px;border:1.5px solid var(--cream);font-size:0.75rem;cursor:pointer;background:var(--paper);transition:all 0.18s;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--cream)';this.style.color=''">保障缺口</span>
+          <span onclick="setStoryTag(this)" style="padding:4px 12px;border-radius:16px;border:1.5px solid var(--cream);font-size:0.75rem;cursor:pointer;background:var(--paper);transition:all 0.18s;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--cream)';this.style.color=''">共鳴對話</span>
+        </div>
+        <input type="text" id="storyTagInput" placeholder="或直接輸入標籤名稱…" style="font-size:0.82rem;" />
       </div>
       <textarea id="storyContentInput" placeholder="把故事或素材寫在這裡…" style="min-height:80px;font-size:0.84rem;margin-bottom:8px;"></textarea>
       <button class="btn btn-primary" style="padding:9px 20px;font-size:0.82rem;" onclick="saveStory()">存入故事庫</button>
@@ -666,12 +677,21 @@ input[type="range"]::-webkit-slider-thumb {
     <h1>K<span class="gold-dot">·</span>短影音腳本生成器</h1>
     <span class="sub">Script Studio</span>
   </div>
-  <div class="brand-pill" onclick="openBrandModal()">
-    <span class="brand-dot unset" id="brandDot"></span>
-    <span class="brand-pill-name" id="brandPillName">尚未設定</span>
-    <span class="brand-pill-action">⚙ 品牌設定</span>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <div class="brand-pill" onclick="openBrandModal()">
+      <span class="brand-dot unset" id="brandDot"></span>
+      <span class="brand-pill-name" id="brandPillName">尚未設定</span>
+      <span class="brand-pill-action">品牌設定</span>
+    </div>
+    <div class="brand-pill" onclick="openStoryLib()">
+      <span style="font-size:0.85rem;">📖</span>
+      <span class="brand-pill-name" id="storyLibCount">故事庫</span>
+    </div>
+    <div class="brand-pill" id="apiKeyPill" onclick="showApiKeyModal()">
+      <span style="font-size:0.85rem;">🔑</span>
+      <span class="brand-pill-name" id="apiKeyLabel">填入 Key</span>
+    </div>
   </div>
-  <div class="brand-pill" id="apiKeyPill" onclick="showApiKeyModal()" style="color:var(--rust);border-color:rgba(184,92,56,0.4);">🔑 填入 API Key</div>
 </header>
 
 <div class="container">
@@ -929,7 +949,7 @@ input[type="range"]::-webkit-slider-thumb {
       <!-- 腳本生成按鈕區（角度選定後出現） -->
       <div id="newsScriptRow" class="hidden">
         <div class="btn-actions">
-          <button class="btn btn-primary" id="generateNewsScriptBtn" onclick="generateNewsScript()">✦ 生成 K 的觀點腳本</button>
+          <button class="btn btn-primary" id="generateNewsScriptBtn" onclick="generateNewsScript()" disabled>✦ 生成 K 的觀點腳本</button>
           <span id="newsSelectHint" style="font-size:0.77rem;color:var(--mist);">請先選一個角度</span>
         </div>
       </div>
@@ -1267,14 +1287,13 @@ function saveApiKey() {
 function updateApiKeyPill() {
   const key = getApiKey();
   const pill = document.getElementById('apiKeyPill');
+  const label = document.getElementById('apiKeyLabel');
   if (key) {
-    pill.textContent = '🔑 已設定 Key';
-    pill.style.color = 'var(--sage)';
-    pill.style.borderColor = 'rgba(122,158,126,0.4)';
+    if (pill) { pill.style.color = 'var(--sage)'; pill.style.borderColor = 'rgba(122,158,126,0.4)'; }
+    if (label) label.textContent = '已設定 Key';
   } else {
-    pill.textContent = '🔑 填入 API Key';
-    pill.style.color = 'var(--rust)';
-    pill.style.borderColor = 'rgba(184,92,56,0.4)';
+    if (pill) { pill.style.color = 'var(--rust)'; pill.style.borderColor = 'rgba(184,92,56,0.4)'; }
+    if (label) label.textContent = '填入 Key';
   }
 }
 
@@ -2037,6 +2056,8 @@ function renderNewsAngles() {
       el.classList.add('selected');
       selectedNewsAngleIdx = i;
       document.getElementById('newsSelectHint').style.display = 'none';
+      const genBtn = document.getElementById('generateNewsScriptBtn');
+      if (genBtn) genBtn.disabled = false;
     });
     grid.appendChild(el);
   });
@@ -2138,6 +2159,10 @@ ${viewpoint ? `【K 的觀點/想法】\n${viewpoint}` : ''}
 // ════════════════════════════════════════
 // STORY LIBRARY
 // ════════════════════════════════════════
+function setStoryTag(el) {
+  document.getElementById('storyTagInput').value = el.textContent;
+}
+
 function getStories() {
   try { return JSON.parse(localStorage.getItem('kStoryLib') || '[]'); } catch(e) { return []; }
 }
