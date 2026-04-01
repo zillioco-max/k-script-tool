@@ -522,6 +522,18 @@ input[type="range"]::-webkit-slider-thumb {
 .story-item-actions .del-btn:hover { border-color: var(--rust); color: var(--rust); }
 .story-empty { text-align:center; padding: 32px; color: var(--mist); font-size: 0.82rem; }
 
+/* ── 新聞輸入方式按鈕 ── */
+.news-type-btn {
+  padding: 6px 13px; border-radius: 22px;
+  border: 1.5px solid var(--cream);
+  font-family: 'Noto Serif TC', serif;
+  font-size: 0.78rem; cursor: pointer;
+  transition: all 0.18s; background: var(--paper); color: var(--ink);
+}
+.news-type-btn:hover { border-color: var(--gold); color: var(--gold); }
+.active-news-btn { background: var(--gold); border-color: var(--gold); color: white; }
+.active-news-btn:hover { background: var(--gold); color: white; }
+
 .hidden { display: none !important; }
 
 @media (max-width: 600px) {
@@ -754,9 +766,9 @@ input[type="range"]::-webkit-slider-thumb {
         <div class="field-group">
           <label class="field-label">素材類型</label>
           <div class="tag-group" style="margin-bottom:16px;">
-            <span class="tag-opt on" id="refTypeUrl" onclick="switchRefType('url')">🔗 影片連結</span>
-            <span class="tag-opt" id="refTypeImg" onclick="switchRefType('img')">🖼 截圖</span>
-            <span class="tag-opt" id="refTypeDoc" onclick="switchRefType('doc')">📄 簡報/資料</span>
+            <button id="refTypeUrl" onclick="switchRefType('url')" class="news-type-btn active-news-btn">🔗 影片連結</button>
+            <button id="refTypeImg" onclick="switchRefType('img')" class="news-type-btn">🖼 截圖</button>
+            <button id="refTypeDoc" onclick="switchRefType('doc')" class="news-type-btn">📄 簡報/資料</button>
           </div>
 
           <!-- 連結輸入 -->
@@ -851,20 +863,23 @@ input[type="range"]::-webkit-slider-thumb {
     <div id="panelNews" class="hidden">
       <div class="card">
         <div class="card-title">時事新聞轉腳本</div>
-        <div class="card-desc">把你今天早會吸收到的國際政經資訊貼進來，AI 會找出它跟保險、財務規劃的連結點，讓你選一個角度，再生成 K 的觀點版腳本。</div>
+        <div class="card-desc">把今天的早會晨訊、新聞標題加連結，或任何國際政經資訊直接貼進來，AI 會從裡面找出最適合做短影音的角度讓你選，再生成 K 的觀點版腳本。</div>
 
         <!-- 輸入方式 -->
         <div class="field-group">
           <label class="field-label">新聞輸入方式</label>
-          <div class="tag-group" style="margin-bottom:16px;">
-            <span class="tag-opt on" id="newsTypeText" onclick="switchNewsType('text')">✏️ 自己打摘要</span>
-            <span class="tag-opt" id="newsTypeUrl" onclick="switchNewsType('url')">🔗 貼連結</span>
-            <span class="tag-opt" id="newsTypeImg" onclick="switchNewsType('img')">🖼 截圖</span>
+          <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+            <button id="newsTypeText" onclick="switchNewsType('text')"
+              class="news-type-btn active-news-btn">📋 貼入晨訊／摘要</button>
+            <button id="newsTypeUrl" onclick="switchNewsType('url')"
+              class="news-type-btn">🔗 單篇連結</button>
+            <button id="newsTypeImg" onclick="switchNewsType('img')"
+              class="news-type-btn">🖼 截圖</button>
           </div>
 
           <!-- 文字摘要 -->
           <div id="newsTextPanel">
-            <textarea id="newsText" placeholder="例：美國聯準會本週宣布維持利率不變，但暗示年底前可能降息一碼。市場對此反應正面，道瓊上漲 1.2%…" style="min-height:110px;"></textarea>
+            <textarea id="newsText" placeholder="直接把早會晨訊貼進來，格式不限，有標題有連結都可以，例如：&#10;&#10;3/31晨訊&#10;川普透露美伊談判有重大進展 道瓊一度漲逾400點&#10;https://udn.com/...&#10;Fed主席鮑爾暗示無需為油價大漲調整政策&#10;https://udn.com/...&#10;&#10;AI 會從這批新聞裡找出最適合做短影音的角度。" style="min-height:160px;"></textarea>
           </div>
 
           <!-- 連結 -->
@@ -1602,9 +1617,10 @@ function switchMode(mode) {
 
 function switchRefType(type) {
   currentRefType = type;
-  document.getElementById('refTypeUrl').classList.toggle('on', type === 'url');
-  document.getElementById('refTypeImg').classList.toggle('on', type === 'img');
-  document.getElementById('refTypeDoc').classList.toggle('on', type === 'doc');
+  ['url','img','doc'].forEach(t => {
+    const btn = document.getElementById('refType' + t.charAt(0).toUpperCase() + t.slice(1));
+    if (btn) btn.classList.toggle('active-news-btn', type === t);
+  });
   document.getElementById('refUrlPanel').classList.toggle('hidden', type !== 'url');
   document.getElementById('refImgPanel').classList.toggle('hidden', type !== 'img');
   document.getElementById('refDocPanel').classList.toggle('hidden', type !== 'doc');
@@ -1851,9 +1867,12 @@ function switchNewsType(type) {
 
 // Fix: simpler switchNewsType
 function switchNewsType(type) {
-  document.getElementById('newsTypeText').classList.toggle('on', type === 'text');
-  document.getElementById('newsTypeUrl').classList.toggle('on', type === 'url');
-  document.getElementById('newsTypeImg').classList.toggle('on', type === 'img');
+  ['text','url','img'].forEach(t => {
+    const btn = document.getElementById('newsType' + t.charAt(0).toUpperCase() + t.slice(1));
+    if (btn) {
+      btn.classList.toggle('active-news-btn', type === t);
+    }
+  });
   document.getElementById('newsTextPanel').classList.toggle('hidden', type !== 'text');
   document.getElementById('newsUrlPanel').classList.toggle('hidden', type !== 'url');
   document.getElementById('newsImgPanel').classList.toggle('hidden', type !== 'img');
@@ -1895,8 +1914,8 @@ async function analyzeNews() {
   const viewpoint = document.getElementById('newsViewpoint').value.trim();
 
   // Determine active input type
-  const activeType = document.getElementById('newsTypeText').classList.contains('on') ? 'text'
-    : document.getElementById('newsTypeUrl').classList.contains('on') ? 'url' : 'img';
+  const activeType = document.getElementById('newsTypeText').classList.contains('active-news-btn') ? 'text'
+    : document.getElementById('newsTypeUrl').classList.contains('active-news-btn') ? 'url' : 'img';
 
   // Validate
   if (activeType === 'text' && !document.getElementById('newsText').value.trim()) {
@@ -1951,28 +1970,34 @@ async function analyzeNews() {
     }
 
     newsContext = rawNews;
-    document.getElementById('newsLoadingText').textContent = '找出與財務規劃的關聯…';
+    document.getElementById('newsLoadingText').textContent = '從新聞裡找出最適合做短影音的角度…';
 
     // Step B: Generate 2-3 angle options
-    const anglesSys = `你是保險財務規劃的內容策略師。你的任務是把一則國際政經新聞，轉化成跟「保險、財務規劃、資產活化」相關的短影音切入角度。
+    const anglesSys = `你是保險財務規劃的內容策略師。使用者可能貼入一則新聞，也可能貼入一整批早會晨訊（多條新聞標題加連結）。
+
+你的任務是：
+- 如果是多條新聞：從裡面挑出最適合做短影音的 2-3 則，每則生成一個切入角度
+- 如果是單則新聞：直接生成 2-3 個不同的切入角度
 
 切入邏輯：新聞是觸發點，不是主題。重點是「這件事對一般人的財務有什麼影響」，而不是在報新聞。
+選角度的優先順序：跟台灣一般人最有感的 > 跟保險/財務規劃關聯最強的 > 最有短影音張力的。
 
 你只能回傳 JSON，不要有任何 markdown backtick 或前言。`;
 
-    const anglesMsg = `新聞內容：
+    const anglesMsg = `以下是使用者貼入的新聞內容：
 ${rawNews}
 
 顧問背景：${bp.name}，${bp.specialty}
 ${viewpoint ? `顧問的初步想法：${viewpoint}` : ''}
 
-請生成 3 個不同的短影音切入角度，每個角度必須：
+請從上面的新聞裡找出 3 個最適合做短影音的切入角度。
+每個角度必須：
 1. 跟保險或財務規劃有明確關聯
-2. 對一般人有感（不能太學術）
-3. 用 K 的說故事風格能自然切入
+2. 對台灣一般人有感（不能太學術）
+3. 點出「這則新聞跟我的錢有什麼關係」
 
 回傳純 JSON：
-[{"angle":"切入角度標題（15字內）","connection":"新聞跟財務規劃的關聯說明（30字內）","hook":"建議的開場鉤子（20字內）"}]`;
+[{"angle":"切入角度標題（15字內）","sourceNews":"這個角度來自哪則新聞（10字內）","connection":"跟財務規劃的關聯（30字內）","hook":"建議的開場鉤子（20字內）"}]`;
 
     const anglesRaw = await callClaude(anglesSys, anglesMsg);
     newsAngles = JSON.parse(anglesRaw.replace(/```json|```/g, '').trim());
@@ -2004,6 +2029,7 @@ function renderNewsAngles() {
         <div class="topic-title">${a.angle}</div>
         <span class="topic-badge" style="background:rgba(127,156,185,0.15);color:var(--mist);">切入點</span>
       </div>
+      ${a.sourceNews ? `<div style="font-size:0.7rem;color:var(--mist);margin-bottom:4px;">📰 來自：${a.sourceNews}</div>` : ''}
       <div class="topic-hook" style="margin-bottom:6px;">${a.connection}</div>
       <div style="font-size:0.77rem;color:var(--gold);font-style:italic;">"${a.hook}"</div>`;
     el.addEventListener('click', () => {
