@@ -534,6 +534,61 @@ input[type="range"]::-webkit-slider-thumb {
 .active-news-btn { background: var(--gold); border-color: var(--gold); color: white; }
 .active-news-btn:hover { background: var(--gold); color: white; }
 
+/* ── 風格樣本庫 ── */
+.style-sample-item {
+  border: 1.5px solid var(--cream);
+  border-radius: 10px;
+  padding: 13px 15px;
+  margin-bottom: 10px;
+  background: var(--paper);
+  position: relative;
+}
+.style-sample-meta {
+  font-size: 0.7rem;
+  color: var(--mist);
+  margin-bottom: 6px;
+  font-family: 'Space Mono', monospace;
+}
+.style-sample-preview {
+  font-size: 0.8rem;
+  color: var(--ink);
+  line-height: 1.65;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+.style-sample-del {
+  position: absolute; top: 10px; right: 10px;
+  background: none; border: none; cursor: pointer;
+  font-size: 0.75rem; color: #ccc; padding: 2px 6px;
+  border-radius: 4px; transition: color 0.18s;
+}
+.style-sample-del:hover { color: var(--rust); }
+
+/* ── 貼入修改版入口 ── */
+.paste-sample-area {
+  background: var(--paper);
+  border: 1.5px dashed var(--cream);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-top: 16px;
+  transition: border-color 0.2s;
+}
+.paste-sample-area:focus-within { border-color: var(--gold); border-style: solid; }
+.paste-sample-title {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.paste-sample-hint {
+  font-size: 0.73rem;
+  color: var(--mist);
+  margin-bottom: 10px;
+  line-height: 1.6;
+}
+
 .hidden { display: none !important; }
 
 @media (max-width: 600px) {
@@ -560,6 +615,27 @@ input[type="range"]::-webkit-slider-thumb {
     <div class="btn-actions">
       <button class="btn btn-primary" onclick="saveApiKey()">✓ 儲存並繼續</button>
       <button class="btn btn-ghost" onclick="closeApiKeyModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ STYLE SAMPLES MODAL ═══ -->
+<div class="overlay hidden" id="styleSamplesOverlay">
+  <div class="modal" style="max-width:600px;">
+    <button class="modal-close" onclick="closeStyleSamples()">×</button>
+    <div class="modal-title">✍️ 風格樣本庫</div>
+    <div class="modal-desc">K 自己改過的腳本版本，AI 生成新腳本時會參考這些樣本學習你的敘事方式和語氣。貼越多，生成越貼近你。</div>
+
+    <!-- 新增樣本 -->
+    <div style="background:var(--paper);border-radius:12px;padding:16px 18px;margin-bottom:20px;">
+      <div style="font-size:0.78rem;font-weight:500;color:var(--ink);margin-bottom:8px;">＋ 貼入修改過的腳本</div>
+      <textarea id="modalStyleSampleInput" placeholder="把你改好的腳本版本貼在這裡…" style="min-height:120px;font-size:0.84rem;margin-bottom:8px;"></textarea>
+      <button class="btn btn-primary" style="padding:9px 20px;font-size:0.82rem;" onclick="saveStyleSampleFromModal()">存入風格樣本庫</button>
+    </div>
+
+    <!-- 樣本列表 -->
+    <div id="styleSamplesList">
+      <div class="story-empty">還沒有存入任何樣本<br><span style="font-size:0.75rem;">把你改過的腳本版本貼進來，AI 會學習你的說話風格</span></div>
     </div>
   </div>
 </div>
@@ -686,6 +762,10 @@ input[type="range"]::-webkit-slider-thumb {
     <div class="brand-pill" onclick="openStoryLib()">
       <span style="font-size:0.85rem;">📖</span>
       <span class="brand-pill-name" id="storyLibCount">故事庫</span>
+    </div>
+    <div class="brand-pill" onclick="openStyleSamples()">
+      <span style="font-size:0.85rem;">✍️</span>
+      <span class="brand-pill-name" id="styleSamplesCount">風格樣本</span>
     </div>
     <div class="brand-pill" id="apiKeyPill" onclick="showApiKeyModal()">
       <span style="font-size:0.85rem;">🔑</span>
@@ -1068,6 +1148,14 @@ input[type="range"]::-webkit-slider-thumb {
       <div id="versionsList"></div>
     </div>
 
+    <!-- 貼入修改版 -->
+    <div class="paste-sample-area">
+      <div class="paste-sample-title">✍️ 把你修改後的版本存起來</div>
+      <div class="paste-sample-hint">複製下來改完之後，貼回這裡存入風格樣本庫。AI 下次生成腳本時會參考你的修改風格，腳本會越來越像你。</div>
+      <textarea id="pasteSampleInput" placeholder="把你改好的腳本版本貼在這裡…" style="min-height:100px;font-size:0.84rem;margin-bottom:8px;"></textarea>
+      <button class="btn btn-primary" style="padding:9px 20px;font-size:0.82rem;" onclick="saveStyleSample()">存入風格樣本庫</button>
+    </div>
+
     <div class="btn-actions">
       <button class="btn btn-primary" onclick="goToStep(2)">← 換一個選題</button>
       <button class="btn btn-outline" onclick="generateScript()">↺ 重新生成腳本</button>
@@ -1108,6 +1196,7 @@ window.addEventListener('DOMContentLoaded', function() {
   loadBrandFromStorage();
   updateApiKeyPill();
   updateStoryLibCount();
+  updateStyleSamplesCount();
   if (!getApiKey()) showApiKeyModal();
   document.querySelectorAll('.tag-group').forEach(g => {
     g.querySelectorAll('.tag-opt').forEach(t => {
@@ -1477,6 +1566,8 @@ async function generateScript() {
 
 ${story ? `顧問的故事或想法（以此為腳本核心）：\n${story}` : '（無額外故事，請自行發想符合品牌定位的情境）'}
 
+${getStyleSamplesForPrompt()}
+
 請確保：語氣符合顧問人格、每段標記時間點、結尾引導互動非購買、完全符合金管會規範。`;
 
   try {
@@ -1611,6 +1702,8 @@ ${currentScript}
 優化指令：${instruction}
 
 顧問語氣：${(bp.personality||[]).join('、')}、${(bp.tone||[]).join('、')}
+
+${getStyleSamplesForPrompt()}
 
 請針對優化指令修改，其他部分盡量保留原有風格。`;
 
@@ -2157,7 +2250,96 @@ ${viewpoint ? `【K 的觀點/想法】\n${viewpoint}` : ''}
   }
 }
 // ════════════════════════════════════════
-// STORY LIBRARY
+// 風格樣本庫
+// ════════════════════════════════════════
+function getStyleSamples() {
+  try { return JSON.parse(localStorage.getItem('kStyleSamples') || '[]'); } catch(e) { return []; }
+}
+
+function saveStyleSamples(arr) {
+  try { localStorage.setItem('kStyleSamples', JSON.stringify(arr)); } catch(e) {}
+  updateStyleSamplesCount();
+}
+
+function updateStyleSamplesCount() {
+  const samples = getStyleSamples();
+  const el = document.getElementById('styleSamplesCount');
+  if (el) el.textContent = samples.length > 0 ? `風格樣本 (${samples.length})` : '風格樣本';
+}
+
+function saveStyleSampleFromModal() {
+  const content = document.getElementById('modalStyleSampleInput').value.trim();
+  if (!content) { alert('請先貼入腳本內容'); return; }
+  const samples = getStyleSamples();
+  const now = new Date();
+  const dateStr = `${now.getMonth()+1}/${now.getDate()} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+  samples.unshift({ id: Date.now(), content, date: dateStr });
+  saveStyleSamples(samples);
+  document.getElementById('modalStyleSampleInput').value = '';
+  renderStyleSamplesList();
+}
+
+function saveStyleSample() {
+  const content = document.getElementById('pasteSampleInput').value.trim();
+  if (!content) { alert('請先貼入你修改後的腳本'); return; }
+  const samples = getStyleSamples();
+  const now = new Date();
+  const dateStr = `${now.getMonth()+1}/${now.getDate()} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+  samples.unshift({ id: Date.now(), content, date: dateStr });
+  saveStyleSamples(samples);
+  document.getElementById('pasteSampleInput').value = '';
+  // Brief success feedback
+  const btn = event.target;
+  btn.textContent = '✓ 已存入';
+  setTimeout(() => btn.textContent = '存入風格樣本庫', 1800);
+}
+
+function deleteStyleSample(id) {
+  const samples = getStyleSamples().filter(s => s.id !== id);
+  saveStyleSamples(samples);
+  renderStyleSamplesList();
+}
+
+function openStyleSamples() {
+  renderStyleSamplesList();
+  document.getElementById('styleSamplesOverlay').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeStyleSamples() {
+  document.getElementById('styleSamplesOverlay').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+function renderStyleSamplesList() {
+  const samples = getStyleSamples();
+  const list = document.getElementById('styleSamplesList');
+  if (!samples.length) {
+    list.innerHTML = '<div class="story-empty">還沒有存入任何樣本<br><span style="font-size:0.75rem;">在腳本生成後，把你修改好的版本貼進來存入</span></div>';
+    return;
+  }
+  list.innerHTML = samples.map(s => `
+    <div class="style-sample-item">
+      <button class="style-sample-del" onclick="deleteStyleSample(${s.id})">× 刪除</button>
+      <div class="style-sample-meta">${s.date}</div>
+      <div class="style-sample-preview">${s.content}</div>
+    </div>
+  `).join('');
+}
+
+function getStyleSamplesForPrompt() {
+  const samples = getStyleSamples();
+  if (!samples.length) return '';
+  // 最近 10 個
+  const recent = samples.slice(0, 10);
+  return `【風格參考樣本】
+以下是這位顧問自己修改過的腳本版本，請學習他的敘事方式、語氣節奏和用詞習慣，讓新腳本更貼近他真實的說話風格：
+
+${recent.map((s, i) => `樣本 ${i+1}：\n${s.content}`).join('\n\n---\n\n')}`;
+}
+
+// ════════════════════════════════════════
+// 風格樣本庫也要同樣注入 optimizeScript
 // ════════════════════════════════════════
 function setStoryTag(el) {
   document.getElementById('storyTagInput').value = el.textContent;
